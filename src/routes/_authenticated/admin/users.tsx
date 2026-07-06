@@ -23,9 +23,10 @@ const ROLES = ["student", "parent", "teacher", "admin"] as const;
 function AdminUsers() {
   const qc = useQueryClient();
   const listFn = useServerFn(listUsers);
+  const allowFn = useServerFn(listAllowlist);
   const [search, setSearch] = useState("");
   const { data: users = [] } = useQuery({ queryKey: ["admin","users",search], queryFn: () => listFn({ data: { search, limit: 200 } }) });
-  const { data: allow = [] } = useQuery({ queryKey: ["admin","allowlist"], queryFn: () => useServerFn(listAllowlist)() });
+  const { data: allow = [] } = useQuery({ queryKey: ["admin","allowlist"], queryFn: () => allowFn() });
 
   return (
     <AppShell nav={ADMIN_NAV} title="Users & roles">
