@@ -30,13 +30,35 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
-  // If already signed in, bounce to the dispatcher.
+  // If already signed in, bounce to the dispatcher — unless this is a password-recovery redirect.
   useEffect(() => {
+    let cancelled = false;
+    const isRecovery = typeof window !== "undefined" && (window.location.hash.includes("type=recovery") || new URLSearchParams(window.location.search).get("type") === "recovery");
+    if (isRecovery) return;
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/app" });
+      if (!cancelled && data.session) navigate({ to: "/app" });
     });
+    return () => { cancelled = true; };
   }, [navigate]);
+
+  async function sendReset() {
+    if (!email) { toast.error("Enter your email above first"); return; }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setResetSent(true);
+      toast.success("Password reset email sent");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send reset");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
