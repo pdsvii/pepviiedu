@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /student
+Disallow: /parent
+Disallow: /teacher
