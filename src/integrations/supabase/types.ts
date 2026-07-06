@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_allowlist: {
+        Row: {
+          created_at: string
+          email: string
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
       assignment_questions: {
         Row: {
           assignment_id: string
@@ -213,6 +231,7 @@ export type Database = {
           id: string
           join_code: string
           name: string
+          school_id: string | null
           teacher_id: string
         }
         Insert: {
@@ -221,6 +240,7 @@ export type Database = {
           id?: string
           join_code?: string
           name: string
+          school_id?: string | null
           teacher_id: string
         }
         Update: {
@@ -229,7 +249,37 @@ export type Database = {
           id?: string
           join_code?: string
           name?: string
+          school_id?: string | null
           teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_settings: {
+        Row: {
+          notes: string | null
+          performance_task_enabled: boolean
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          notes?: string | null
+          performance_task_enabled?: boolean
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          notes?: string | null
+          performance_task_enabled?: boolean
+          updated_at?: string
+          year?: number
         }
         Relationships: []
       }
@@ -282,6 +332,7 @@ export type Database = {
           full_name: string | null
           grade: number | null
           id: string
+          is_disabled: boolean
           updated_at: string
         }
         Insert: {
@@ -290,6 +341,7 @@ export type Database = {
           full_name?: string | null
           grade?: number | null
           id: string
+          is_disabled?: boolean
           updated_at?: string
         }
         Update: {
@@ -298,6 +350,7 @@ export type Database = {
           full_name?: string | null
           grade?: number | null
           id?: string
+          is_disabled?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -386,6 +439,30 @@ export type Database = {
         }
         Relationships: []
       }
+      schools: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parish: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parish?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parish?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       topics: {
         Row: {
           component: Database["public"]["Enums"]["pep_component"]
@@ -443,6 +520,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_parent_of: {
         Args: { _child: string; _parent: string }
         Returns: boolean
@@ -453,7 +531,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "student" | "parent" | "teacher"
+      app_role: "student" | "parent" | "teacher" | "admin"
       pep_component: "AT" | "CBT" | "PT"
       proficiency_band:
         | "beginning"
@@ -597,7 +675,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "parent", "teacher"],
+      app_role: ["student", "parent", "teacher", "admin"],
       pep_component: ["AT", "CBT", "PT"],
       proficiency_band: [
         "beginning",
