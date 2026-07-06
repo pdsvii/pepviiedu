@@ -13,6 +13,10 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedStudentRouteRouteImport } from './routes/_authenticated/student/route'
+import { Route as AuthenticatedStudentIndexRouteImport } from './routes/_authenticated/student/index'
+import { Route as AuthenticatedStudentRewardsRouteImport } from './routes/_authenticated/student/rewards'
+import { Route as AuthenticatedStudentPracticeRouteImport } from './routes/_authenticated/student/practice'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -33,30 +37,87 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStudentRouteRoute =
+  AuthenticatedStudentRouteRouteImport.update({
+    id: '/student',
+    path: '/student',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStudentIndexRoute =
+  AuthenticatedStudentIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStudentRouteRoute,
+  } as any)
+const AuthenticatedStudentRewardsRoute =
+  AuthenticatedStudentRewardsRouteImport.update({
+    id: '/rewards',
+    path: '/rewards',
+    getParentRoute: () => AuthenticatedStudentRouteRoute,
+  } as any)
+const AuthenticatedStudentPracticeRoute =
+  AuthenticatedStudentPracticeRouteImport.update({
+    id: '/practice',
+    path: '/practice',
+    getParentRoute: () => AuthenticatedStudentRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
+  '/student/practice': typeof AuthenticatedStudentPracticeRoute
+  '/student/rewards': typeof AuthenticatedStudentRewardsRoute
+  '/student/': typeof AuthenticatedStudentIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
+  '/student/practice': typeof AuthenticatedStudentPracticeRoute
+  '/student/rewards': typeof AuthenticatedStudentRewardsRoute
+  '/student': typeof AuthenticatedStudentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/student/practice': typeof AuthenticatedStudentPracticeRoute
+  '/_authenticated/student/rewards': typeof AuthenticatedStudentRewardsRoute
+  '/_authenticated/student/': typeof AuthenticatedStudentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/app'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/student'
+    | '/app'
+    | '/student/practice'
+    | '/student/rewards'
+    | '/student/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app'
-  id: '__root__' | '/' | '/_authenticated' | '/auth' | '/_authenticated/app'
+  to:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/student/practice'
+    | '/student/rewards'
+    | '/student'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/student'
+    | '/_authenticated/app'
+    | '/_authenticated/student/practice'
+    | '/_authenticated/student/rewards'
+    | '/_authenticated/student/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,14 +156,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/student': {
+      id: '/_authenticated/student'
+      path: '/student'
+      fullPath: '/student'
+      preLoaderRoute: typeof AuthenticatedStudentRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/student/': {
+      id: '/_authenticated/student/'
+      path: '/'
+      fullPath: '/student/'
+      preLoaderRoute: typeof AuthenticatedStudentIndexRouteImport
+      parentRoute: typeof AuthenticatedStudentRouteRoute
+    }
+    '/_authenticated/student/rewards': {
+      id: '/_authenticated/student/rewards'
+      path: '/rewards'
+      fullPath: '/student/rewards'
+      preLoaderRoute: typeof AuthenticatedStudentRewardsRouteImport
+      parentRoute: typeof AuthenticatedStudentRouteRoute
+    }
+    '/_authenticated/student/practice': {
+      id: '/_authenticated/student/practice'
+      path: '/practice'
+      fullPath: '/student/practice'
+      preLoaderRoute: typeof AuthenticatedStudentPracticeRouteImport
+      parentRoute: typeof AuthenticatedStudentRouteRoute
+    }
   }
 }
 
+interface AuthenticatedStudentRouteRouteChildren {
+  AuthenticatedStudentPracticeRoute: typeof AuthenticatedStudentPracticeRoute
+  AuthenticatedStudentRewardsRoute: typeof AuthenticatedStudentRewardsRoute
+  AuthenticatedStudentIndexRoute: typeof AuthenticatedStudentIndexRoute
+}
+
+const AuthenticatedStudentRouteRouteChildren: AuthenticatedStudentRouteRouteChildren =
+  {
+    AuthenticatedStudentPracticeRoute: AuthenticatedStudentPracticeRoute,
+    AuthenticatedStudentRewardsRoute: AuthenticatedStudentRewardsRoute,
+    AuthenticatedStudentIndexRoute: AuthenticatedStudentIndexRoute,
+  }
+
+const AuthenticatedStudentRouteRouteWithChildren =
+  AuthenticatedStudentRouteRoute._addFileChildren(
+    AuthenticatedStudentRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedStudentRouteRoute: typeof AuthenticatedStudentRouteRouteWithChildren
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedStudentRouteRoute: AuthenticatedStudentRouteRouteWithChildren,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
 }
 
