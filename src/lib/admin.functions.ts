@@ -1,0 +1,327 @@
+import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
+
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.rpc("is_admin", { _user_id: userId });
+  if (error) throw error;
+  if (!data) throw new Error("Admin only");
+}
+
+// -------- Users & roles --------
+export const listUsers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ search: z.string().optional(), limit: z.number().int().min(1).max(200).default(100) }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: users, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: data.limit });
+    if (error) throw error;
+    const list = users.users
+      .filter((u) => !data.search || (u.email ?? "").toLowerCase().includes(data.search.toLowerCase()))
+      .map((u) => ({ id: u.id, email: u.email, created_at: u.created_at, last_sign_in_at: u.last_sign_in_at, banned_until: (u as any).banned_until }));
+    const ids = list.map((u) => u.id);
+    if (ids.length === 0) return [];
+    const [{ data: roles }, { data: profiles }] = await Promise.all([
+      supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", ids),
+      supabaseAdmin.from("profiles").select("id, full_name, grade, is_disabled").in("id", ids),
+    ]);
+    const rmap = new Map<string, string[]>();
+    (roles ?? []).forEach((r: any) => { const a = rmap.get(r.user_id) ?? []; a.push(r.role); rmap.set(r.user_id, a); });
+    const pmap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+    return list.map((u) => ({ ...u, roles: rmap.get(u.id) ?? [], profile: pmap.get(u.id) ?? null }));
+  });
+
+export const setUserRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ user_id: z.string().uuid(), role: z.enum(["student","parent","teacher","admin"]) }).parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
+    const { error } = await supabaseAdmin.from("user_roles").insert({ user_id: data.user_id, role: data.role });
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const setUserDisabled = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ user_id: z.string().uuid(), disabled: z.boolean() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    if (data.user_id === context.userId) throw new Error("You can't disable your own account");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
+      ban_duration: data.disabled ? "876000h" : "none",
+    } as any);
+    if (error) throw error;
+    await supabaseAdmin.from("profiles").update({ is_disabled: data.disabled }).eq("id", data.user_id);
+    return { ok: true };
+  });
+
+export const adminResetPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ user_id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: u } = await supabaseAdmin.auth.admin.getUserById(data.user_id);
+    const email = u?.user?.email;
+    if (!email) throw new Error("User has no email");
+    const { data: link, error } = await supabaseAdmin.auth.admin.generateLink({ type: "recovery", email });
+    if (error) throw error;
+    return { action_link: link?.properties?.action_link ?? null };
+  });
+
+export const adminCreateUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      email: z.string().email(),
+      password: z.string().min(6).max(72),
+      full_name: z.string().min(1).max(120),
+      role: z.enum(["student","parent","teacher","admin"]),
+      grade: z.number().int().min(4).max(6).optional(),
+    }).parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email, password: data.password, email_confirm: true,
+      user_metadata: { full_name: data.full_name, role: data.role },
+    });
+    if (error || !created?.user) throw new Error(error?.message ?? "Failed");
+    const id = created.user.id;
+    await supabaseAdmin.from("profiles").upsert({ id, full_name: data.full_name, grade: data.grade ?? null });
+    await supabaseAdmin.from("user_roles").upsert({ user_id: id, role: data.role }, { onConflict: "user_id,role" });
+    return { id };
+  });
+
+// -------- Allowlist --------
+export const listAllowlist = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data } = await context.supabase.from("admin_allowlist").select("*").order("created_at", { ascending: false });
+    return data ?? [];
+  });
+
+export const addAllowlist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ email: z.string().email(), note: z.string().optional() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const email = data.email.toLowerCase();
+    const { error } = await context.supabase.from("admin_allowlist").insert({ email, note: data.note ?? null });
+    if (error) throw error;
+    // If user with that email already exists, grant admin now.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
+    const found = list.users.find((u) => (u.email ?? "").toLowerCase() === email);
+    if (found) {
+      await supabaseAdmin.from("user_roles").upsert({ user_id: found.id, role: "admin" }, { onConflict: "user_id,role" });
+    }
+    return { ok: true };
+  });
+
+export const removeAllowlist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ email: z.string().email() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    await context.supabase.from("admin_allowlist").delete().eq("email", data.email.toLowerCase());
+    return { ok: true };
+  });
+
+// -------- Content (topics, passages, questions) --------
+export const listTopics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data } = await context.supabase.from("topics").select("*").order("grade").order("subject");
+    return data ?? [];
+  });
+
+export const upsertTopic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      id: z.string().uuid().optional(),
+      subject: z.enum(["math","language_arts","science","social_studies"]),
+      grade: z.number().int().min(4).max(6),
+      component: z.enum(["ability","curriculum","performance_task"]),
+      name: z.string().min(1),
+      strand: z.string().optional().nullable(),
+    }).parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const row: any = { subject: data.subject, grade: data.grade, component: data.component, name: data.name, strand: data.strand ?? null };
+    if (data.id) row.id = data.id;
+    const { data: out, error } = await context.supabase.from("topics").upsert(row).select().single();
+    if (error) throw error;
+    return out;
+  });
+
+export const deleteTopic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("topics").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const listQuestions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ topic_id: z.string().uuid().optional(), limit: z.number().int().min(1).max(500).default(200) }).parse(i ?? {}))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    let q = context.supabase.from("questions").select("id, topic_id, type, stem, difficulty, created_at, topics(name, subject, grade, component)").order("created_at", { ascending: false }).limit(data.limit);
+    if (data.topic_id) q = q.eq("topic_id", data.topic_id);
+    const { data: out } = await q;
+    return out ?? [];
+  });
+
+export const upsertQuestion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      id: z.string().uuid().optional(),
+      topic_id: z.string().uuid(),
+      type: z.enum(["mcq","multi","short","numeric","perf_task"]),
+      stem: z.string().min(1),
+      options: z.any().optional(),
+      answer_key: z.any().optional(),
+      rubric: z.any().optional(),
+      difficulty: z.number().int().min(1).max(5).default(2),
+      explanation: z.string().optional().nullable(),
+    }).parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const row: any = { ...data };
+    if (!data.id) delete row.id;
+    const { data: out, error } = await context.supabase.from("questions").upsert(row).select().single();
+    if (error) throw error;
+    return out;
+  });
+
+export const deleteQuestion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("questions").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+// -------- Schools & classes --------
+export const listSchools = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data } = await context.supabase.from("schools").select("*").order("name");
+    return data ?? [];
+  });
+
+export const upsertSchool = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid().optional(), name: z.string().min(1), parish: z.string().optional().nullable() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const row: any = { name: data.name, parish: data.parish ?? null };
+    if (data.id) row.id = data.id;
+    const { data: out, error } = await context.supabase.from("schools").upsert(row).select().single();
+    if (error) throw error;
+    return out;
+  });
+
+export const deleteSchool = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("schools").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const listAllClasses = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data } = await context.supabase
+      .from("classes")
+      .select("id, name, grade, join_code, teacher_id, school_id, created_at, profiles!classes_teacher_id_fkey(full_name), schools(name)");
+    return data ?? [];
+  });
+
+export const assignClassTeacher = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ class_id: z.string().uuid(), teacher_id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("classes").update({ teacher_id: data.teacher_id }).eq("id", data.class_id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const assignClassSchool = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ class_id: z.string().uuid(), school_id: z.string().uuid().nullable() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("classes").update({ school_id: data.school_id }).eq("id", data.class_id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+// -------- Analytics --------
+export const platformAnalytics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const sb = context.supabase;
+    const [{ count: users }, { count: attempts }, { count: questions }, { count: classes }, { count: schools }, { data: bands }] =
+      await Promise.all([
+        sb.from("profiles").select("id", { count: "exact", head: true }),
+        sb.from("attempts").select("id", { count: "exact", head: true }).not("finished_at", "is", null),
+        sb.from("questions").select("id", { count: "exact", head: true }),
+        sb.from("classes").select("id", { count: "exact", head: true }),
+        sb.from("schools").select("id", { count: "exact", head: true }),
+        sb.from("attempts").select("band, subject").not("band", "is", null).limit(2000),
+      ]);
+    const bandCounts: Record<string, number> = {};
+    (bands ?? []).forEach((r: any) => { if (r.band) bandCounts[r.band] = (bandCounts[r.band] ?? 0) + 1; });
+    return { users: users ?? 0, attempts: attempts ?? 0, questions: questions ?? 0, classes: classes ?? 0, schools: schools ?? 0, bandCounts };
+  });
+
+// -------- Exam settings --------
+export const listExamSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data } = await context.supabase.from("exam_settings").select("*").order("year");
+    return data ?? [];
+  });
+
+export const upsertExamSetting = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ year: z.number().int().min(2024).max(2100), performance_task_enabled: z.boolean(), notes: z.string().optional().nullable() }).parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("exam_settings")
+      .upsert({ year: data.year, performance_task_enabled: data.performance_task_enabled, notes: data.notes ?? null, updated_at: new Date().toISOString() });
+    if (error) throw error;
+    return { ok: true };
+  });

@@ -23,6 +23,7 @@ function Dispatcher() {
   // No role yet — offer a chooser (for Google sign-ins that skipped signup form).
   if (!data?.role) return <ChooseRole onDone={() => refetch()} />;
 
+  if (data.role === "admin") return <Navigate to="/admin" />;
   if (data.role === "student") return <Navigate to="/student" />;
   if (data.role === "parent") return <Navigate to="/parent" />;
   if (data.role === "teacher") return <Navigate to="/teacher" />;

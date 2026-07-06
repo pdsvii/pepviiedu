@@ -7,10 +7,14 @@ export const getMyRole = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId).limit(1).maybeSingle();
+    const { data: rows, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     if (error) throw error;
+    const roles = (rows ?? []).map((r: any) => r.role as string);
+    // Precedence: admin > teacher > parent > student
+    const order = ["admin", "teacher", "parent", "student"] as const;
+    const role = (order.find((r) => roles.includes(r)) ?? null) as "student" | "parent" | "teacher" | "admin" | null;
     const { data: profile } = await supabase.from("profiles").select("id, full_name, avatar, grade").eq("id", userId).maybeSingle();
-    return { role: (data?.role ?? null) as "student" | "parent" | "teacher" | null, profile };
+    return { role, profile };
   });
 
 // Ensure a profile + role exist for the current user. Called right after sign-up.
