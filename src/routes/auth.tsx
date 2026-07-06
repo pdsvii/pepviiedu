@@ -157,6 +157,11 @@ function AuthPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
             </Button>
+            {mode === "signin" && (
+              <button type="button" onClick={sendReset} className="w-full text-center text-xs font-semibold text-primary hover:underline" disabled={loading}>
+                {resetSent ? "Reset email sent — check your inbox" : "Forgot your password?"}
+              </button>
+            )}
           </form>
 
           <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
