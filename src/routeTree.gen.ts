@@ -9,38 +9,246 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedTeacherRouteRouteImport } from './routes/_authenticated/teacher/route'
+import { Route as AuthenticatedStudentRouteRouteImport } from './routes/_authenticated/student/route'
+import { Route as AuthenticatedParentRouteRouteImport } from './routes/_authenticated/parent/route'
+import { Route as AuthenticatedTeacherIndexRouteImport } from './routes/_authenticated/teacher/index'
+import { Route as AuthenticatedStudentIndexRouteImport } from './routes/_authenticated/student/index'
+import { Route as AuthenticatedParentIndexRouteImport } from './routes/_authenticated/parent/index'
+import { Route as AuthenticatedTeacherAssignmentsRouteImport } from './routes/_authenticated/teacher/assignments'
+import { Route as AuthenticatedStudentRewardsRouteImport } from './routes/_authenticated/student/rewards'
+import { Route as AuthenticatedStudentPracticeRouteImport } from './routes/_authenticated/student/practice'
+import { Route as AuthenticatedTeacherClassClassIdRouteImport } from './routes/_authenticated/teacher/class.$classId'
+import { Route as AuthenticatedParentChildChildIdRouteImport } from './routes/_authenticated/parent/child.$childId'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTeacherRouteRoute =
+  AuthenticatedTeacherRouteRouteImport.update({
+    id: '/teacher',
+    path: '/teacher',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStudentRouteRoute =
+  AuthenticatedStudentRouteRouteImport.update({
+    id: '/student',
+    path: '/student',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedParentRouteRoute =
+  AuthenticatedParentRouteRouteImport.update({
+    id: '/parent',
+    path: '/parent',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTeacherIndexRoute =
+  AuthenticatedTeacherIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedTeacherRouteRoute,
+  } as any)
+const AuthenticatedStudentIndexRoute =
+  AuthenticatedStudentIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStudentRouteRoute,
+  } as any)
+const AuthenticatedParentIndexRoute =
+  AuthenticatedParentIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedParentRouteRoute,
+  } as any)
+const AuthenticatedTeacherAssignmentsRoute =
+  AuthenticatedTeacherAssignmentsRouteImport.update({
+    id: '/assignments',
+    path: '/assignments',
+    getParentRoute: () => AuthenticatedTeacherRouteRoute,
+  } as any)
+const AuthenticatedStudentRewardsRoute =
+  AuthenticatedStudentRewardsRouteImport.update({
+    id: '/rewards',
+    path: '/rewards',
+    getParentRoute: () => AuthenticatedStudentRouteRoute,
+  } as any)
+const AuthenticatedStudentPracticeRoute =
+  AuthenticatedStudentPracticeRouteImport.update({
+    id: '/practice',
+    path: '/practice',
+    getParentRoute: () => AuthenticatedStudentRouteRoute,
+  } as any)
+const AuthenticatedTeacherClassClassIdRoute =
+  AuthenticatedTeacherClassClassIdRouteImport.update({
+    id: '/class/$classId',
+    path: '/class/$classId',
+    getParentRoute: () => AuthenticatedTeacherRouteRoute,
+  } as any)
+const AuthenticatedParentChildChildIdRoute =
+  AuthenticatedParentChildChildIdRouteImport.update({
+    id: '/child/$childId',
+    path: '/child/$childId',
+    getParentRoute: () => AuthenticatedParentRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/parent': typeof AuthenticatedParentRouteRouteWithChildren
+  '/student': typeof AuthenticatedStudentRouteRouteWithChildren
+  '/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
+  '/app': typeof AuthenticatedAppRoute
+  '/student/practice': typeof AuthenticatedStudentPracticeRoute
+  '/student/rewards': typeof AuthenticatedStudentRewardsRoute
+  '/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/parent/': typeof AuthenticatedParentIndexRoute
+  '/student/': typeof AuthenticatedStudentIndexRoute
+  '/teacher/': typeof AuthenticatedTeacherIndexRoute
+  '/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
+  '/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/app': typeof AuthenticatedAppRoute
+  '/student/practice': typeof AuthenticatedStudentPracticeRoute
+  '/student/rewards': typeof AuthenticatedStudentRewardsRoute
+  '/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/parent': typeof AuthenticatedParentIndexRoute
+  '/student': typeof AuthenticatedStudentIndexRoute
+  '/teacher': typeof AuthenticatedTeacherIndexRoute
+  '/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
+  '/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/parent': typeof AuthenticatedParentRouteRouteWithChildren
+  '/_authenticated/student': typeof AuthenticatedStudentRouteRouteWithChildren
+  '/_authenticated/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
+  '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/student/practice': typeof AuthenticatedStudentPracticeRoute
+  '/_authenticated/student/rewards': typeof AuthenticatedStudentRewardsRoute
+  '/_authenticated/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/_authenticated/parent/': typeof AuthenticatedParentIndexRoute
+  '/_authenticated/student/': typeof AuthenticatedStudentIndexRoute
+  '/_authenticated/teacher/': typeof AuthenticatedTeacherIndexRoute
+  '/_authenticated/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
+  '/_authenticated/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/sitemap.xml'
+    | '/parent'
+    | '/student'
+    | '/teacher'
+    | '/app'
+    | '/student/practice'
+    | '/student/rewards'
+    | '/teacher/assignments'
+    | '/parent/'
+    | '/student/'
+    | '/teacher/'
+    | '/parent/child/$childId'
+    | '/teacher/class/$classId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/sitemap.xml'
+    | '/app'
+    | '/student/practice'
+    | '/student/rewards'
+    | '/teacher/assignments'
+    | '/parent'
+    | '/student'
+    | '/teacher'
+    | '/parent/child/$childId'
+    | '/teacher/class/$classId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/sitemap.xml'
+    | '/_authenticated/parent'
+    | '/_authenticated/student'
+    | '/_authenticated/teacher'
+    | '/_authenticated/app'
+    | '/_authenticated/student/practice'
+    | '/_authenticated/student/rewards'
+    | '/_authenticated/teacher/assignments'
+    | '/_authenticated/parent/'
+    | '/_authenticated/student/'
+    | '/_authenticated/teacher/'
+    | '/_authenticated/parent/child/$childId'
+    | '/_authenticated/teacher/class/$classId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +256,169 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/teacher': {
+      id: '/_authenticated/teacher'
+      path: '/teacher'
+      fullPath: '/teacher'
+      preLoaderRoute: typeof AuthenticatedTeacherRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/student': {
+      id: '/_authenticated/student'
+      path: '/student'
+      fullPath: '/student'
+      preLoaderRoute: typeof AuthenticatedStudentRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/parent': {
+      id: '/_authenticated/parent'
+      path: '/parent'
+      fullPath: '/parent'
+      preLoaderRoute: typeof AuthenticatedParentRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/teacher/': {
+      id: '/_authenticated/teacher/'
+      path: '/'
+      fullPath: '/teacher/'
+      preLoaderRoute: typeof AuthenticatedTeacherIndexRouteImport
+      parentRoute: typeof AuthenticatedTeacherRouteRoute
+    }
+    '/_authenticated/student/': {
+      id: '/_authenticated/student/'
+      path: '/'
+      fullPath: '/student/'
+      preLoaderRoute: typeof AuthenticatedStudentIndexRouteImport
+      parentRoute: typeof AuthenticatedStudentRouteRoute
+    }
+    '/_authenticated/parent/': {
+      id: '/_authenticated/parent/'
+      path: '/'
+      fullPath: '/parent/'
+      preLoaderRoute: typeof AuthenticatedParentIndexRouteImport
+      parentRoute: typeof AuthenticatedParentRouteRoute
+    }
+    '/_authenticated/teacher/assignments': {
+      id: '/_authenticated/teacher/assignments'
+      path: '/assignments'
+      fullPath: '/teacher/assignments'
+      preLoaderRoute: typeof AuthenticatedTeacherAssignmentsRouteImport
+      parentRoute: typeof AuthenticatedTeacherRouteRoute
+    }
+    '/_authenticated/student/rewards': {
+      id: '/_authenticated/student/rewards'
+      path: '/rewards'
+      fullPath: '/student/rewards'
+      preLoaderRoute: typeof AuthenticatedStudentRewardsRouteImport
+      parentRoute: typeof AuthenticatedStudentRouteRoute
+    }
+    '/_authenticated/student/practice': {
+      id: '/_authenticated/student/practice'
+      path: '/practice'
+      fullPath: '/student/practice'
+      preLoaderRoute: typeof AuthenticatedStudentPracticeRouteImport
+      parentRoute: typeof AuthenticatedStudentRouteRoute
+    }
+    '/_authenticated/teacher/class/$classId': {
+      id: '/_authenticated/teacher/class/$classId'
+      path: '/class/$classId'
+      fullPath: '/teacher/class/$classId'
+      preLoaderRoute: typeof AuthenticatedTeacherClassClassIdRouteImport
+      parentRoute: typeof AuthenticatedTeacherRouteRoute
+    }
+    '/_authenticated/parent/child/$childId': {
+      id: '/_authenticated/parent/child/$childId'
+      path: '/child/$childId'
+      fullPath: '/parent/child/$childId'
+      preLoaderRoute: typeof AuthenticatedParentChildChildIdRouteImport
+      parentRoute: typeof AuthenticatedParentRouteRoute
+    }
   }
 }
 
+interface AuthenticatedParentRouteRouteChildren {
+  AuthenticatedParentIndexRoute: typeof AuthenticatedParentIndexRoute
+  AuthenticatedParentChildChildIdRoute: typeof AuthenticatedParentChildChildIdRoute
+}
+
+const AuthenticatedParentRouteRouteChildren: AuthenticatedParentRouteRouteChildren =
+  {
+    AuthenticatedParentIndexRoute: AuthenticatedParentIndexRoute,
+    AuthenticatedParentChildChildIdRoute: AuthenticatedParentChildChildIdRoute,
+  }
+
+const AuthenticatedParentRouteRouteWithChildren =
+  AuthenticatedParentRouteRoute._addFileChildren(
+    AuthenticatedParentRouteRouteChildren,
+  )
+
+interface AuthenticatedStudentRouteRouteChildren {
+  AuthenticatedStudentPracticeRoute: typeof AuthenticatedStudentPracticeRoute
+  AuthenticatedStudentRewardsRoute: typeof AuthenticatedStudentRewardsRoute
+  AuthenticatedStudentIndexRoute: typeof AuthenticatedStudentIndexRoute
+}
+
+const AuthenticatedStudentRouteRouteChildren: AuthenticatedStudentRouteRouteChildren =
+  {
+    AuthenticatedStudentPracticeRoute: AuthenticatedStudentPracticeRoute,
+    AuthenticatedStudentRewardsRoute: AuthenticatedStudentRewardsRoute,
+    AuthenticatedStudentIndexRoute: AuthenticatedStudentIndexRoute,
+  }
+
+const AuthenticatedStudentRouteRouteWithChildren =
+  AuthenticatedStudentRouteRoute._addFileChildren(
+    AuthenticatedStudentRouteRouteChildren,
+  )
+
+interface AuthenticatedTeacherRouteRouteChildren {
+  AuthenticatedTeacherAssignmentsRoute: typeof AuthenticatedTeacherAssignmentsRoute
+  AuthenticatedTeacherIndexRoute: typeof AuthenticatedTeacherIndexRoute
+  AuthenticatedTeacherClassClassIdRoute: typeof AuthenticatedTeacherClassClassIdRoute
+}
+
+const AuthenticatedTeacherRouteRouteChildren: AuthenticatedTeacherRouteRouteChildren =
+  {
+    AuthenticatedTeacherAssignmentsRoute: AuthenticatedTeacherAssignmentsRoute,
+    AuthenticatedTeacherIndexRoute: AuthenticatedTeacherIndexRoute,
+    AuthenticatedTeacherClassClassIdRoute:
+      AuthenticatedTeacherClassClassIdRoute,
+  }
+
+const AuthenticatedTeacherRouteRouteWithChildren =
+  AuthenticatedTeacherRouteRoute._addFileChildren(
+    AuthenticatedTeacherRouteRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedParentRouteRoute: typeof AuthenticatedParentRouteRouteWithChildren
+  AuthenticatedStudentRouteRoute: typeof AuthenticatedStudentRouteRouteWithChildren
+  AuthenticatedTeacherRouteRoute: typeof AuthenticatedTeacherRouteRouteWithChildren
+  AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedParentRouteRoute: AuthenticatedParentRouteRouteWithChildren,
+  AuthenticatedStudentRouteRoute: AuthenticatedStudentRouteRouteWithChildren,
+  AuthenticatedTeacherRouteRoute: AuthenticatedTeacherRouteRouteWithChildren,
+  AuthenticatedAppRoute: AuthenticatedAppRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
