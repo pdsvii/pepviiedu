@@ -325,3 +325,116 @@ export const upsertExamSetting = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+// -------- Exam blueprints --------
+export const upsertBlueprint = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      id: z.string().uuid().optional(),
+      grade: z.number().int().min(4).max(6),
+      component: z.enum(["AT","CBT","PT"]),
+      subject: z.enum(["mathematics","language_arts","science","social_studies"]).nullable().optional(),
+      item_count: z.number().int().min(1).max(200),
+      duration_minutes: z.number().int().min(1).max(300),
+      band_cuts: z.object({
+        developing: z.number().min(0).max(100),
+        proficient: z.number().min(0).max(100),
+        highly_proficient: z.number().min(0).max(100),
+      }),
+      notes: z.string().optional().nullable(),
+    }).parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const row: any = { ...data, subject: data.subject ?? null, is_default: false };
+    if (!data.id) delete row.id;
+    const { data: out, error } = await context.supabase.from("exam_blueprints").upsert(row).select().single();
+    if (error) throw error;
+    return out;
+  });
+
+export const deleteBlueprint = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("exam_blueprints").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+// -------- AI-generated PEP items --------
+export const generateExamItems = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      grade: z.number().int().min(4).max(6),
+      subject: z.enum(["mathematics","language_arts","science","social_studies"]),
+      component: z.enum(["AT","CBT","PT"]),
+      strand: z.string().optional(),
+      count: z.number().int().min(1).max(20).default(5),
+    }).parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("LOVABLE_API_KEY missing");
+
+    // Ensure a topic exists
+    const strand = data.strand ?? "general";
+    let { data: topic } = await context.supabase.from("topics").select("id")
+      .eq("subject", data.subject).eq("grade", data.grade).eq("component", data.component).eq("strand", strand).maybeSingle();
+    if (!topic) {
+      const { data: t, error } = await context.supabase.from("topics").insert({
+        subject: data.subject, grade: data.grade, component: data.component,
+        name: `${data.subject} · ${strand}`, strand,
+      }).select("id").single();
+      if (error) throw error;
+      topic = t;
+    }
+
+    const prompt = `Generate ${data.count} Jamaica PEP practice items for a Grade ${data.grade} student.
+Subject: ${data.subject}. Component: ${data.component}. Strand: ${strand}.
+Items must be age-appropriate, Jamaican cultural context where relevant, and aligned to the PEP curriculum.
+
+Return JSON: { "items": [ { "type": "mc"|"numeric"|"short_text"|"pt_scenario", "stem": string, "options": string[] (for mc, 4 options), "answer_key": { "value": <index-for-mc | number-for-numeric | string-for-short_text>, "tolerance": <optional-number> }, "rubric": { "criteria": string[], "max": 1 } (for pt_scenario/short_text), "explanation": string, "difficulty": 1-5 } ] }.
+For mc: answer_key.value is the 0-based index of the correct option.`;
+
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", "Lovable-API-Key": key },
+      body: JSON.stringify({
+        model: "openai/gpt-5.5",
+        messages: [
+          { role: "system", content: "You are a PEP (Primary Exit Profile) content writer for Jamaican primary schools. Output only valid JSON." },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`AI error ${res.status}: ${t.slice(0, 200)}`);
+    }
+    const j: any = await res.json();
+    const content = j?.choices?.[0]?.message?.content ?? "{}";
+    let parsed: any;
+    try { parsed = JSON.parse(content); } catch { throw new Error("AI returned invalid JSON"); }
+    const items: any[] = Array.isArray(parsed.items) ? parsed.items : [];
+    if (items.length === 0) throw new Error("No items returned");
+
+    const rows = items.map((it) => ({
+      topic_id: topic!.id,
+      type: (["mc","multi","tf","numeric","short_text","pt_scenario","matching","ordering"].includes(it.type) ? it.type : "mc"),
+      stem: String(it.stem ?? "").slice(0, 4000),
+      options: it.options ?? null,
+      answer_key: it.answer_key ?? null,
+      rubric: it.rubric ?? null,
+      difficulty: Math.max(1, Math.min(5, Number(it.difficulty ?? 2))),
+      explanation: it.explanation ?? null,
+    }));
+    const { error: insErr, data: inserted } = await context.supabase.from("questions").insert(rows).select("id");
+    if (insErr) throw insErr;
+    return { inserted: inserted?.length ?? 0 };
+  });

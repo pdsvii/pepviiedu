@@ -1,102 +1,80 @@
 
-# viiVision PEP — Build Plan
+# Exam Engine — Timed PEP Mock Exams
 
-A full-stack PEP prep app for Jamaican primary students, parents, and teachers, built on TanStack Start + Lovable Cloud (Supabase) with the pastel Jamaican palette.
+Additive mode alongside existing Practice. Four new tables, admin-editable blueprints, AI-generated PEP-aligned items, timed exam UI with auto-submit, per-band results, and role-scoped access.
 
-## 1. Foundation
+## 1. Data model (new migration)
 
-- Enable **Lovable Cloud** (Supabase-powered auth, Postgres, edge functions).
-- Set up the design system in `src/styles.css` with the pastel palette (mint `#A8D5BA`, deeper green `#7CB79A`, cream gold `#F5E1A4`, charcoal `#3A3A3A`, off-white `#FBFBF7`, leaf `#B8E0C2`, apricot `#F6C79A`) as OKLCH semantic tokens. Load Nunito via a `<link>` in `__root.tsx`.
-- Two visual modes via a `.student` scope class: student = rounder radii, larger type, playful; parent/teacher = tighter, more neutral, same tokens.
-- Update `__root.tsx` head: title "viiVision PEP — Jamaica Primary Exit Profile Practice", proper description/OG.
+New tables (all with GRANT + RLS):
 
-## 2. Data Model (Supabase)
+- `exam_blueprints` — `(grade, component, subject nullable)` unique; `item_count`, `duration_minutes`, `item_mix jsonb`, `band_cuts jsonb` (`{beginning, developing, proficient, highly_proficient}` as % thresholds), `is_default bool`. Admin write, everyone-authenticated read.
+- `exam_sessions` — `student_id`, `grade`, `component`, `subject nullable`, `blueprint_id`, `status` (`in_progress|submitted|expired`), `started_at`, `submitted_at`, `time_limit_seconds`, `remaining_seconds`, `overall_pct`, `overall_band`. RLS: student self, parent-of, teacher-of (via existing helpers), admin.
+- `exam_session_items` — `session_id`, `question_id`, `order_index`, `subject`, `strand`, `student_answer jsonb`, `is_correct`, `points_awarded numeric`, `points_max numeric`, `flagged bool`, `ai_feedback jsonb nullable`. RLS mirrors session.
+- `exam_results` — `session_id` unique, `per_subject jsonb`, `per_strand jsonb`, `overall_pct`, `overall_band`, `time_used_seconds`, `created_at`. RLS mirrors session.
 
-Roles are stored in a separate `user_roles` table with `has_role()` security-definer function (never on profiles).
+Extend `questions` (if not already present): ensure columns for `component` (AT/CBT/PT), `item_type` (mc/multi/numeric/short/constructed/reasoning/pt_scenario), `strand`, `grade`, `subject`, `difficulty`, `points`, `rubric jsonb nullable`, `stimulus_id nullable` (for PT scenario groups).
 
-Tables:
-- `profiles` (id → auth.users, full_name, avatar, role_hint)
-- `app_role` enum: `student | parent | teacher`
-- `user_roles` (user_id, role)
-- `parent_child` (parent_id, child_id) — links parent accounts to student accounts they created
-- `classes` (id, teacher_id, name, grade)
-- `class_members` (class_id, student_id)
-- `subjects` enum: `mathematics | language_arts | science | social_studies`
-- `pep_component` enum: `AT | CBT | PT`
-- `topics` (id, subject, grade, component, name, strand)
-- `questions` (id, topic_id, type, stem, media, options jsonb, answer_key jsonb, rubric jsonb, difficulty, explanation, passage_id nullable)
-- `passages` (id, title, body, subject, grade) — for passage-based sets
-- `question_type` enum: `mc | multi | tf | numeric | matching | ordering | short_text | pt_scenario`
-- `assignments` (id, teacher_id, class_id, title, due_at, component filter, topic filter)
-- `assignment_questions` (assignment_id, question_id, order)
-- `attempts` (id, student_id, assignment_id nullable, started_at, finished_at, band)
-- `attempt_answers` (attempt_id, question_id, response jsonb, correct, score, ai_feedback, teacher_override)
-- `proficiency_bands` derived view: mapping score → `beginning | developing | proficient | highly_proficient`
-- `rewards` (student_id, kind, earned_at) — badges/streaks
+Seed default blueprints for G4/G5/G6 × {AT, CBT-per-subject, PT}. Placeholder counts/durations per spec; flagged as defaults.
 
-All tables: explicit `GRANT`s to `authenticated` + `service_role`, RLS enabled, policies scoped via `has_role()` and ownership (`auth.uid()`), plus parent→child access via `parent_child`.
+## 2. Server functions
 
-## 3. Auth & Role Flows
+`src/lib/exam.functions.ts`:
+- `listBlueprints`, `startExamSession({grade, component, subject?})` — snapshots items from bank by blueprint mix
+- `getExamSession({session_id})` — returns session + items (WITHOUT answer keys)
+- `saveAnswer({session_id, item_id, answer, flagged})` — updates `remaining_seconds`
+- `submitExamSession({session_id})` — auto-grades objective, AI-grades open items via Lovable AI (`openai/gpt-5.5`) against rubric, computes per-subject/strand + band, writes `exam_results`
+- `listMyExamHistory`, `getExamResult({session_id})`
+- Parent/Teacher/Admin variants: `listChildExamResults`, `listClassExamResults`, `assignExamToClass`
 
-- Landing page explains the app + Sign in / Sign up (Parent or Teacher only; students cannot self-register).
-- Email/password auth (+ Google OAuth via Lovable broker).
-- Signup selects role (parent | teacher) → assigns role in `user_roles`, creates profile via trigger.
-- Parent dashboard has "Add child" flow: creates a new auth user (via edge function using service role) with a parent-set password, links `parent_child`, assigns `student` role.
-- Route gating via managed `_authenticated/` layout, then role-specific pathless layouts: `_authenticated/_student`, `_authenticated/_parent`, `_authenticated/_teacher`, each `beforeLoad` checks `has_role` and redirects otherwise. Root route routes signed-in users to the right dashboard.
+`src/lib/admin.functions.ts` additions:
+- `upsertBlueprint`, `deleteBlueprint`, `generateExamItems({grade, subject, component, strand?, count})` — Lovable AI generates PEP-aligned items with answer keys/rubrics, inserts into `questions`
 
-## 4. Student Experience (`/student/*`)
+Teacher assignment reuses existing `assignments` table with a new `kind='exam'` + `blueprint_id`.
 
-- Playful home: avatar, streak, current level, "Practice", "My Rewards", "Assignments from teacher".
-- **Practice session flow**: choose subject → grade (pinned to profile) → component (AT/CBT, PT if enabled) → topic (or "mixed"). Present questions one at a time with the right renderer per type (MC, multi, T/F, numeric entry, drag-and-drop matching/ordering, short text, passage-set, PT scenario). Instant feedback + worked explanation after each answer. Progress ring during session.
-- **Results screen**: band badge (Beginning → Highly Proficient), stars, encouraging copy, topics to keep practicing. **Never** shows raw percentages.
-- Rewards page: badges + streaks.
+## 3. Student UI
 
-## 5. Parent Experience (`/parent/*`)
+- New route `_authenticated/student/exams/index.tsx` — grade→component→(subject) picker, list resumable sessions
+- `_authenticated/student/exams/session.$sessionId.tsx` — full-screen exam mode:
+  - Overall countdown header, per-section timer when multi-subject
+  - One question at a time, prev/next, flag toggle, review grid sidebar
+  - Auto-save on answer change and every 15s (updates `remaining_seconds`)
+  - Auto-submit when timer hits 0 (client + server-side re-check)
+  - **No feedback shown during exam**
+- `_authenticated/student/exams/result.$sessionId.tsx` — bands per subject, overall band card, strand strengths/weaknesses, answer review with correct answers + AI feedback
 
-- Children list, add child, reset child password, edit child profile, consent toggle.
-- Per-child progress summary by subject with band chips + recent activity. No authoring.
+Add "Mock Exams" nav entry on student dashboard alongside Practice.
 
-## 6. Teacher Experience (`/teacher/*`)
+## 4. Parent UI
 
-- Classes list, create class, add students by email (must already be student accounts) or generate join code.
-- Create Assignment: pick class, filter by subject/grade/component/topic, select questions from bank, set due date.
-- Analytics: topic × student heatmap (band-colored), class summary, drill-down to individual report (printable via `window.print` styles), CSV export.
-- Manual score override on open/PT responses.
+- On `parent/child.$childId.tsx`, add "Mock Exams" tab: toggle-enable per component, view child's exam history + result reports.
 
-## 7. Scoring
+## 5. Teacher UI
 
-- Auto-score MC / multi / T/F / numeric / matching / ordering in a server function on submit.
-- Short-text and PT scenarios: edge function calling Lovable AI (`openai/gpt-5.5`) with rubric → returns score + qualitative feedback; teacher can override.
-- Band mapping (configurable thresholds; defaults 0–49 Beginning, 50–69 Developing, 70–84 Proficient, 85–100 Highly Proficient) — used server-side; students only see the band name/badge.
+- New `teacher/exams.tsx`: assign a mock to a class, view class results table + reuse existing heatmap component filtered to exam attempts.
 
-## 8. Seeded Starter Bank
+## 6. Admin UI
 
-Seed via migration: a couple of topics per subject × grade (4/5/6) × AT and CBT components, ~5–8 questions each, plus 2 sample PT scenarios. Every question has a worked explanation. Content is original PEP-style, not past papers.
+- New `admin/blueprints.tsx`: CRUD blueprints — item_count, duration_minutes, item_mix, band_cuts.
+- New `admin/generate-items.tsx`: form (grade/subject/component/strand/count) → calls `generateExamItems` → preview → save to bank.
+- Link both from admin dashboard.
 
-## 9. Server Functions & Routes
+## 7. AI grading + generation
 
-- `src/lib/practice.functions.ts` — start session, submit answer, finish session (auto-score + band).
-- `src/lib/parent.functions.ts` — create child (service-role via `.server.ts`), list children, reset child password.
-- `src/lib/teacher.functions.ts` — classes, assignments, analytics queries.
-- `src/lib/ai-score.functions.ts` — AI scoring for open responses via Lovable AI.
+Use existing Lovable AI Gateway pattern (`src/lib/ai-gateway.server.ts` if present, else create). Model: `openai/gpt-5.5`. Structured output (Zod) for both generation and grading. Rubric-driven scoring for constructed responses; store rationale in `ai_feedback` (teachers can override later — reuse existing attempt override path if present, otherwise add a light `teacherOverrideResultItem` fn).
 
-All authenticated fns use `requireSupabaseAuth`; privileged operations verify role with `has_role` before loading `client.server`.
+## 8. Theming
 
-## 10. Out of scope for this first pass
+Reuse pastel Jamaican tokens, `BandBadge`, and existing shell. Exam mode uses a tighter focus layout (dimmed nav, prominent timer) but same tokens.
 
-- Live class sessions, chat, video, offline mode, payments, i18n, dark mode toggle.
-- Real past-paper content.
+## Scope guardrails
+
+- Practice mode, existing routes, auth, and domain remain untouched.
+- Blueprint numbers seeded as editable defaults with a UI note "Pending official MoE spec".
+- All new public tables get GRANT + RLS in the same migration.
 
 ## Technical notes
 
-- TanStack Start file-based routes under `src/routes/`; no `src/pages/`.
-- Route tree: `/`, `/auth`, `/reset-password`, `_authenticated/_student/*`, `_authenticated/_parent/*`, `_authenticated/_teacher/*`.
-- All colors as semantic tokens; no hardcoded hex in components. Two font pairings: Nunito (student) and Nunito + system for parent/teacher (same family, tighter tracking).
-- `sitemap.xml` + `robots.txt` added at end of scaffolding for the public routes (`/`, `/auth`).
-
-## Assumptions (please correct any)
-
-1. Students can log in themselves (with credentials created by their parent), rather than being surfaced only through a parent-shared device.
-2. Google OAuth is fine for parents/teachers; students use email + password only.
-3. Band thresholds above are placeholders until you provide official cut points.
-4. PT toggle is a global admin setting stored in a `settings` row (defaulting to ON); teachers see it but cannot toggle it.
+- Timer authority is server-side: `remaining_seconds` recomputed from `started_at + time_limit_seconds - now()` on every save; client clock is display only.
+- Item snapshot at start prevents bank edits from changing an in-progress exam.
+- AI grading runs inside `submitExamSession` handler; failure falls back to `needs_review` state so submission never blocks.
+- All protected exam server fns use `requireSupabaseAuth`; admin fns gated by `is_admin`.
