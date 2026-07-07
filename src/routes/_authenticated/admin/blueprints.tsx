@@ -8,7 +8,6 @@ import { listExamBlueprints } from "@/lib/exam.functions";
 import { upsertBlueprint, deleteBlueprint } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/blueprints")({ component: AdminBlueprints });
