@@ -75,7 +75,7 @@ function AuthPage() {
         if (error) throw error;
         if (data.session) {
           await initAccountFn({ data: { role, full_name: name } });
-          toast.success("Welcome to viiVision PEP!");
+          toast.success("Welcome to PEP Ready!");
           navigate({ to: "/app" });
         } else {
           toast.success("Check your email to confirm your account.");
@@ -115,7 +115,7 @@ function AuthPage() {
       <div className="mx-auto max-w-md px-6 py-10">
         <Link to="/" className="mb-8 inline-flex items-center gap-2">
           <span className="grid h-9 w-9 place-items-center rounded-2xl bg-primary text-primary-foreground display font-bold">v</span>
-          <span className="display text-lg font-bold">viiVision PEP</span>
+          <span className="display text-lg font-bold">PEP Ready</span>
         </Link>
 
         <div className="rounded-3xl bg-card p-6 shadow-sm">
