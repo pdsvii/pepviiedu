@@ -180,11 +180,18 @@ export const deleteTopic = createServerFn({ method: "POST" })
 
 export const listQuestions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ topic_id: z.string().uuid().optional(), limit: z.number().int().min(1).max(500).default(200) }).parse(i ?? {}))
+  .inputValidator((i: unknown) => z.object({
+    topic_id: z.string().uuid().optional(),
+    source: z.enum(["all","moey_official_2018","ai_generated"]).default("all"),
+    needs_review: z.boolean().optional(),
+    limit: z.number().int().min(1).max(500).default(200),
+  }).parse(i ?? {}))
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
-    let q = context.supabase.from("questions").select("id, topic_id, type, stem, difficulty, created_at, topics(name, subject, grade, component)").order("created_at", { ascending: false }).limit(data.limit);
+    let q = context.supabase.from("questions").select("id, topic_id, type, stem, difficulty, source, source_ref, needs_review, created_at, topics(name, subject, grade, component)").order("created_at", { ascending: false }).limit(data.limit);
     if (data.topic_id) q = q.eq("topic_id", data.topic_id);
+    if (data.source && data.source !== "all") q = q.eq("source", data.source);
+    if (data.needs_review !== undefined) q = q.eq("needs_review", data.needs_review);
     const { data: out } = await q;
     return out ?? [];
   });
