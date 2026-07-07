@@ -31,7 +31,12 @@ function AdminContent() {
   const delQ = useServerFn(deleteQuestion);
   const { data: topics = [] } = useQuery({ queryKey: ["admin","topics"], queryFn: () => listT() });
   const [topicId, setTopicId] = useState<string | undefined>();
-  const { data: questions = [] } = useQuery({ queryKey: ["admin","questions", topicId], queryFn: () => listQ({ data: { topic_id: topicId } }) });
+  const [sourceFilter, setSourceFilter] = useState<"all"|"moey_official_2018"|"ai_generated">("all");
+  const [reviewOnly, setReviewOnly] = useState(false);
+  const { data: questions = [] } = useQuery({
+    queryKey: ["admin","questions", topicId, sourceFilter, reviewOnly],
+    queryFn: () => listQ({ data: { topic_id: topicId, source: sourceFilter, needs_review: reviewOnly ? true : undefined } }),
+  });
 
   return (
     <AppShell nav={ADMIN_NAV} title="Content management">
