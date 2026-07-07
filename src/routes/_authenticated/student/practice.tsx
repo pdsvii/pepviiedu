@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/student/practice")({
 const NAV = [
   { to: "/student", label: "Home" },
   { to: "/student/practice", label: "Practice" },
+  { to: "/student/exams", label: "Mock Exams" },
   { to: "/student/rewards", label: "My Rewards" },
 ];
 
