@@ -60,7 +60,7 @@ function ChooseRole({ onDone }: { onDone: () => void }) {
   return (
     <div className="mx-auto max-w-md px-6 py-10">
       <h1 className="display text-2xl font-bold">One quick thing</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Tell us how you'll use viiVision PEP.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Tell us how you'll use PEP Ready.</p>
       <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1">
         {(["parent","teacher"] as const).map((r) => (
           <button key={r} onClick={() => setRole(r)}

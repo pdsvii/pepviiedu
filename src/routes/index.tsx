@@ -12,7 +12,7 @@ function Landing() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Link to="/" className="flex items-center gap-2">
           <span className="grid h-9 w-9 place-items-center rounded-2xl bg-primary text-primary-foreground display font-bold">v</span>
-          <span className="display text-xl font-bold">viiVision <span className="text-primary">PEP</span></span>
+          <span className="display text-xl font-bold">PEP Ready</span>
         </Link>
         <div className="flex items-center gap-2">
           <Link to="/auth"><Button variant="ghost">Sign in</Button></Link>
@@ -32,7 +32,7 @@ function Landing() {
               Confident kids.<br/>Ready for <span className="text-primary">PEP</span>.
             </h1>
             <p className="mt-5 max-w-lg text-lg text-muted-foreground">
-              viiVision PEP is a friendly practice app for Jamaica's Primary Exit Profile. Playful for children,
+              PEP Ready is a friendly practice app for Jamaica's Primary Exit Profile. Playful for children,
               powerful for parents and teachers — covering the Ability Test, the Curriculum-Based Test, and
               Performance Tasks across all four subjects.
             </p>
@@ -98,7 +98,7 @@ function Landing() {
       </main>
 
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        © viiVision PEP — practice content, not real past papers.
+        © PEP Ready — practice content, not real past papers.
       </footer>
     </div>
   );
