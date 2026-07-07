@@ -577,9 +577,12 @@ export type Database = {
           explanation: string | null
           id: string
           media: string | null
+          needs_review: boolean
           options: Json | null
           passage_id: string | null
           rubric: Json | null
+          source: string
+          source_ref: string | null
           stem: string
           topic_id: string | null
           type: Database["public"]["Enums"]["question_type"]
@@ -591,9 +594,12 @@ export type Database = {
           explanation?: string | null
           id?: string
           media?: string | null
+          needs_review?: boolean
           options?: Json | null
           passage_id?: string | null
           rubric?: Json | null
+          source?: string
+          source_ref?: string | null
           stem: string
           topic_id?: string | null
           type: Database["public"]["Enums"]["question_type"]
@@ -605,9 +611,12 @@ export type Database = {
           explanation?: string | null
           id?: string
           media?: string | null
+          needs_review?: boolean
           options?: Json | null
           passage_id?: string | null
           rubric?: Json | null
+          source?: string
+          source_ref?: string | null
           stem?: string
           topic_id?: string | null
           type?: Database["public"]["Enums"]["question_type"]
