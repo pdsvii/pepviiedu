@@ -262,6 +262,220 @@ export type Database = {
           },
         ]
       }
+      exam_blueprints: {
+        Row: {
+          band_cuts: Json
+          component: Database["public"]["Enums"]["pep_component"]
+          created_at: string
+          duration_minutes: number
+          grade: number
+          id: string
+          is_default: boolean
+          item_count: number
+          item_mix: Json
+          notes: string | null
+          subject: Database["public"]["Enums"]["subject"] | null
+          updated_at: string
+        }
+        Insert: {
+          band_cuts?: Json
+          component: Database["public"]["Enums"]["pep_component"]
+          created_at?: string
+          duration_minutes?: number
+          grade: number
+          id?: string
+          is_default?: boolean
+          item_count?: number
+          item_mix?: Json
+          notes?: string | null
+          subject?: Database["public"]["Enums"]["subject"] | null
+          updated_at?: string
+        }
+        Update: {
+          band_cuts?: Json
+          component?: Database["public"]["Enums"]["pep_component"]
+          created_at?: string
+          duration_minutes?: number
+          grade?: number
+          id?: string
+          is_default?: boolean
+          item_count?: number
+          item_mix?: Json
+          notes?: string | null
+          subject?: Database["public"]["Enums"]["subject"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      exam_results: {
+        Row: {
+          created_at: string
+          id: string
+          overall_band: Database["public"]["Enums"]["proficiency_band"]
+          overall_pct: number
+          per_strand: Json
+          per_subject: Json
+          session_id: string
+          time_used_seconds: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          overall_band?: Database["public"]["Enums"]["proficiency_band"]
+          overall_pct?: number
+          per_strand?: Json
+          per_subject?: Json
+          session_id: string
+          time_used_seconds?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          overall_band?: Database["public"]["Enums"]["proficiency_band"]
+          overall_pct?: number
+          per_strand?: Json
+          per_subject?: Json
+          session_id?: string
+          time_used_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "exam_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_session_items: {
+        Row: {
+          ai_feedback: Json | null
+          created_at: string
+          flagged: boolean
+          id: string
+          is_correct: boolean | null
+          order_index: number
+          points_awarded: number | null
+          points_max: number
+          question_id: string
+          session_id: string
+          strand: string | null
+          student_answer: Json | null
+          subject: Database["public"]["Enums"]["subject"] | null
+          updated_at: string
+        }
+        Insert: {
+          ai_feedback?: Json | null
+          created_at?: string
+          flagged?: boolean
+          id?: string
+          is_correct?: boolean | null
+          order_index: number
+          points_awarded?: number | null
+          points_max?: number
+          question_id: string
+          session_id: string
+          strand?: string | null
+          student_answer?: Json | null
+          subject?: Database["public"]["Enums"]["subject"] | null
+          updated_at?: string
+        }
+        Update: {
+          ai_feedback?: Json | null
+          created_at?: string
+          flagged?: boolean
+          id?: string
+          is_correct?: boolean | null
+          order_index?: number
+          points_awarded?: number | null
+          points_max?: number
+          question_id?: string
+          session_id?: string
+          strand?: string | null
+          student_answer?: Json | null
+          subject?: Database["public"]["Enums"]["subject"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_session_items_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_session_items_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "exam_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_sessions: {
+        Row: {
+          blueprint_id: string
+          component: Database["public"]["Enums"]["pep_component"]
+          created_at: string
+          grade: number
+          id: string
+          overall_band: Database["public"]["Enums"]["proficiency_band"] | null
+          overall_pct: number | null
+          remaining_seconds: number
+          started_at: string
+          status: string
+          student_id: string
+          subject: Database["public"]["Enums"]["subject"] | null
+          submitted_at: string | null
+          time_limit_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          blueprint_id: string
+          component: Database["public"]["Enums"]["pep_component"]
+          created_at?: string
+          grade: number
+          id?: string
+          overall_band?: Database["public"]["Enums"]["proficiency_band"] | null
+          overall_pct?: number | null
+          remaining_seconds: number
+          started_at?: string
+          status?: string
+          student_id: string
+          subject?: Database["public"]["Enums"]["subject"] | null
+          submitted_at?: string | null
+          time_limit_seconds: number
+          updated_at?: string
+        }
+        Update: {
+          blueprint_id?: string
+          component?: Database["public"]["Enums"]["pep_component"]
+          created_at?: string
+          grade?: number
+          id?: string
+          overall_band?: Database["public"]["Enums"]["proficiency_band"] | null
+          overall_pct?: number | null
+          remaining_seconds?: number
+          started_at?: string
+          status?: string
+          student_id?: string
+          subject?: Database["public"]["Enums"]["subject"] | null
+          submitted_at?: string | null
+          time_limit_seconds?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_sessions_blueprint_id_fkey"
+            columns: ["blueprint_id"]
+            isOneToOne: false
+            referencedRelation: "exam_blueprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_settings: {
         Row: {
           notes: string | null
