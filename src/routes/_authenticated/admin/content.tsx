@@ -31,7 +31,12 @@ function AdminContent() {
   const delQ = useServerFn(deleteQuestion);
   const { data: topics = [] } = useQuery({ queryKey: ["admin","topics"], queryFn: () => listT() });
   const [topicId, setTopicId] = useState<string | undefined>();
-  const { data: questions = [] } = useQuery({ queryKey: ["admin","questions", topicId], queryFn: () => listQ({ data: { topic_id: topicId } }) });
+  const [sourceFilter, setSourceFilter] = useState<"all"|"moey_official_2018"|"ai_generated">("all");
+  const [reviewOnly, setReviewOnly] = useState(false);
+  const { data: questions = [] } = useQuery({
+    queryKey: ["admin","questions", topicId, sourceFilter, reviewOnly],
+    queryFn: () => listQ({ data: { topic_id: topicId, source: sourceFilter, needs_review: reviewOnly ? true : undefined } }),
+  });
 
   return (
     <AppShell nav={ADMIN_NAV} title="Content management">
@@ -66,16 +71,37 @@ function AdminContent() {
             <h2 className="font-semibold">Questions {topicId ? "" : "(all topics)"}</h2>
             <QuestionDialog topics={topics} defaultTopicId={topicId} onSaved={() => qc.invalidateQueries({ queryKey: ["admin","questions"] })} />
           </div>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <div className="flex gap-1 rounded-full bg-muted p-1 text-xs">
+              {(["all","moey_official_2018","ai_generated"] as const).map((s) => (
+                <button key={s} onClick={() => setSourceFilter(s)}
+                  className={`rounded-full px-3 py-1 ${sourceFilter===s?"bg-background shadow-sm font-semibold":""}`}>
+                  {s==="all"?"All sources":s==="moey_official_2018"?"Official MOEY":"AI-generated"}
+                </button>
+              ))}
+            </div>
+            <label className="flex items-center gap-1 text-xs">
+              <input type="checkbox" checked={reviewOnly} onChange={(e) => setReviewOnly(e.target.checked)} />
+              Needs review only
+            </label>
+            <span className="ml-auto text-xs text-muted-foreground">{questions.length} shown</span>
+          </div>
           <ul className="divide-y">
             {questions.map((q: any) => (
               <li key={q.id} className="flex items-start gap-2 py-2">
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span className="rounded-full bg-muted px-2 py-0.5 font-semibold">{q.type}</span>
+                    {q.source === "moey_official_2018" && (
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary" title={q.source_ref ?? undefined}>★ Official MOEY 2018</span>
+                    )}
+                    {q.needs_review && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">Needs review</span>
+                    )}
                     {q.topics && <span>G{q.topics.grade} · {q.topics.subject} · {q.topics.component} · {q.topics.name}</span>}
                     <span>· diff {q.difficulty}</span>
                   </div>
-                  <div className="mt-1 text-sm">{q.stem}</div>
+                  <div className="mt-1 whitespace-pre-wrap text-sm">{q.stem}</div>
                 </div>
                 <QuestionDialog topics={topics} question={q} onSaved={() => qc.invalidateQueries({ queryKey: ["admin","questions"] })} />
                 <Button size="sm" variant="ghost" onClick={async () => {
