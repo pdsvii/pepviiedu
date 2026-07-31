@@ -307,7 +307,10 @@ export const submitExamSession = createServerFn({ method: "POST" })
       remaining_seconds: 0,
     }).eq("id", data.session_id);
 
-    const { data: result } = await supabase.from("exam_results").upsert({
+    // exam_results is read-only for students under RLS — write it with the
+    // privileged server client after the session ownership check above.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: result, error: resultError } = await supabaseAdmin.from("exam_results").upsert({
       session_id: data.session_id,
       per_subject: perSubject,
       per_strand: perStrand,
@@ -315,8 +318,10 @@ export const submitExamSession = createServerFn({ method: "POST" })
       overall_band: band,
       time_used_seconds: timeUsed,
     }, { onConflict: "session_id" }).select().single();
+    if (resultError) throw resultError;
 
     return { ok: true, result };
+
   });
 
 // -------- History --------
