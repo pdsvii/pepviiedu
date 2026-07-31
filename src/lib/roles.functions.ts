@@ -27,17 +27,41 @@ export const initAccount = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ context, data }) => {
-    const { supabase, userId, claims } = context;
-    const email = (claims as { email?: string })?.email;
-    // Upsert profile
-    await supabase.from("profiles").upsert(
+    const { userId, claims } = context;
+    const email = (claims as { email?: string })?.email?.toLowerCase();
+    // user_roles / profiles are not self-writable under RLS (so nobody can
+    // self-assign admin). Do the setup with the privileged server client,
+    // limited to the safe roles validated above.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
       { id: userId, full_name: data.full_name || email || "User" },
       { onConflict: "id" },
     );
-    // Insert role if not present
-    const { data: existing } = await supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle();
-    if (!existing) {
-      await supabase.from("user_roles").insert({ user_id: userId, role: data.role });
+    if (profileError) throw profileError;
+
+    // Allowlisted emails become platform admins.
+    let role: "parent" | "teacher" | "admin" = data.role;
+    if (email) {
+      const { data: allow } = await supabaseAdmin
+        .from("admin_allowlist")
+        .select("email")
+        .eq("email", email)
+        .maybeSingle();
+      if (allow) role = "admin";
     }
-    return { ok: true };
+
+    const { data: existing } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .limit(1);
+    if (!existing || existing.length === 0) {
+      const { error: roleError } = await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id: userId, role });
+      if (roleError) throw roleError;
+    }
+    return { ok: true, role };
   });
+
