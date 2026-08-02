@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { scoreToBand } from "@/lib/pep";
+import { gradeAnswer } from "@/lib/grading";
 
 const SubjectEnum = z.enum(["mathematics", "language_arts", "science", "social_studies"]);
 const ComponentEnum = z.enum(["AT", "CBT", "PT"]);
@@ -112,50 +113,18 @@ export const submitAnswer = createServerFn({ method: "POST" })
     const { data: attempt } = await supabase.from("attempts").select("id, student_id").eq("id", data.attempt_id).single();
     if (!attempt || attempt.student_id !== userId) throw new Error("Not your attempt");
 
-    let correct: boolean | null = null;
-    let score: number | null = null;
+    // One shared grader for every question type (see src/lib/grading.ts) so a
+    // typed answer is judged the same in practice, exams and admin review.
     const key = q.answer_key as any;
-
-    switch (q.type) {
-      case "mc":
-      case "tf": {
-        correct = Number(data.response) === Number(key?.correct);
-        score = correct ? 1 : 0;
-        break;
-      }
-      case "multi": {
-        const chosen = Array.isArray(data.response) ? [...data.response].sort() : [];
-        const expected = Array.isArray(key?.correct) ? [...key.correct].sort() : [];
-        correct = JSON.stringify(chosen) === JSON.stringify(expected);
-        score = correct ? 1 : 0;
-        break;
-      }
-      case "numeric": {
-        const v = Number(data.response);
-        correct = !Number.isNaN(v) && Math.abs(v - Number(key?.value)) < 1e-6;
-        score = correct ? 1 : 0;
-        break;
-      }
-      case "short_text": {
-        // Naive keyword hit-rate scoring; teacher can override later.
-        const answer = String(data.response ?? "").toLowerCase();
-        const keywords: string[] = Array.isArray(key?.keywords) ? key.keywords : [];
-        const hits = keywords.filter((k) => answer.includes(k.toLowerCase())).length;
-        score = keywords.length ? hits / keywords.length : 0;
-        correct = score >= 0.6;
-        break;
-      }
-      case "pt_scenario": {
-        // Deferred: teacher scores manually. Store as pending.
-        score = null;
-        correct = null;
-        break;
-      }
-      default: {
-        score = null;
-        correct = null;
-      }
+    const graded = gradeAnswer(q.type, key, data.response);
+    let correct: boolean | null = graded.correct;
+    let score: number | null = graded.score;
+    if (q.type === "pt_scenario" && graded.status === "unscored") {
+      // Deferred: teacher scores manually.
+      correct = null;
+      score = null;
     }
+
 
     await supabase.from("attempt_answers").insert({
       attempt_id: data.attempt_id,
