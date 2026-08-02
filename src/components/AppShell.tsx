@@ -31,10 +31,8 @@ export function AppShell({
     <div className={variant === "student" ? "student-surface min-h-screen bg-background" : "min-h-screen bg-background"}>
       <header className="sticky top-0 z-10 border-b bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-2xl bg-primary text-primary-foreground display font-bold">v</span>
-            <span className="display font-bold">PEP Ready</span>
-          </Link>
+          <Brand />
+
           <nav className="hidden gap-1 md:flex">
             {nav.map((n) => (
               <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
