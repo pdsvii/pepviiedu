@@ -108,10 +108,30 @@ export function looseEquals(a: string, b: string): boolean {
   if (a === b) return true;
   const na = parseNumberish(a), nb = parseNumberish(b);
   if (na !== null && nb !== null) return Math.abs(na - nb) < 1e-9;
-  const budget = b.length >= 8 ? 2 : b.length >= 5 ? 1 : 0;
-  if (budget === 0) return false;
-  return levenshtein(a, b) <= budget;
+
+  // Compare token by token so a spelling slip is forgiven but a genuinely
+  // different short token ("vendor a" vs "vendor b") is never a match.
+  const ta = a.split(" "), tb = b.split(" ");
+  if (ta.length !== tb.length) return false;
+  let slips = 0;
+  for (let i = 0; i < tb.length; i++) {
+    const x = ta[i]!, y = tb[i]!;
+    if (x === y) continue;
+    const nx = parseNumberish(x), ny = parseNumberish(y);
+    if (nx !== null && ny !== null) {
+      if (Math.abs(nx - ny) < 1e-9) continue;
+      return false;
+    }
+    // Short or numeric-bearing tokens must match exactly.
+    if (y.length <= 3 || /\d/.test(y) || /\d/.test(x)) return false;
+    const budget = y.length >= 8 ? 2 : 1;
+    if (levenshtein(x, y) > budget) return false;
+    slips += 1;
+    if (slips > 2) return false;
+  }
+  return true;
 }
+
 
 function acceptedList(key: NonNullable<AnswerKey>): string[] {
   const out: string[] = [];
