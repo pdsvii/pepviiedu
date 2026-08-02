@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { ADMIN_NAV } from "./index";
 import {
@@ -231,8 +231,8 @@ function AdminContent() {
                 {rows.map((q: any) => {
                   const open = openId === q.id;
                   return (
-                    <>
-                      <TableRow key={q.id} className="cursor-pointer align-top" onClick={() => setOpenId(open ? null : q.id)}>
+                    <Fragment key={q.id}>
+                      <TableRow className="cursor-pointer align-top" onClick={() => setOpenId(open ? null : q.id)}>
                         <TableCell>{open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</TableCell>
                         <TableCell className="max-w-[420px]">
                           <span className="line-clamp-2 font-medium">{q.stem}</span>
@@ -262,13 +262,13 @@ function AdminContent() {
                         </TableCell>
                       </TableRow>
                       {open && (
-                        <TableRow key={`${q.id}-preview`}>
+                        <TableRow>
                           <TableCell colSpan={9} className="bg-muted/40 p-4">
                             <InteractiveQuestion q={q} />
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
                 {rows.length === 0 && (
