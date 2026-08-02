@@ -134,7 +134,7 @@ export const submitAnswer = createServerFn({ method: "POST" })
       score,
     });
 
-    return { correct, score, explanation: q.explanation, rubric: q.rubric };
+    return { correct, score, status: graded.status, reason: graded.reason, explanation: q.explanation, rubric: q.rubric };
   });
 
 export const finishPracticeSession = createServerFn({ method: "POST" })
