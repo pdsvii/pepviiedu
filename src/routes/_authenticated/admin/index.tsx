@@ -11,6 +11,7 @@ export const ADMIN_NAV = [
   { to: "/admin", label: "Overview" },
   { to: "/admin/users", label: "Users" },
   { to: "/admin/content", label: "Content" },
+  { to: "/admin/answer-keys", label: "Answer Keys" },
   { to: "/admin/blueprints", label: "Exam Blueprints" },
   { to: "/admin/generate", label: "Generate Items" },
   { to: "/admin/schools", label: "Schools" },

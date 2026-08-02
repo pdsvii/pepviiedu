@@ -32,6 +32,7 @@ import { Route as AuthenticatedAdminSchoolsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminGenerateRouteImport } from './routes/_authenticated/admin/generate'
 import { Route as AuthenticatedAdminContentRouteImport } from './routes/_authenticated/admin/content'
 import { Route as AuthenticatedAdminBlueprintsRouteImport } from './routes/_authenticated/admin/blueprints'
+import { Route as AuthenticatedAdminAnswerKeysRouteImport } from './routes/_authenticated/admin/answer-keys'
 import { Route as AuthenticatedStudentExamsIndexRouteImport } from './routes/_authenticated/student/exams/index'
 import { Route as AuthenticatedTeacherClassClassIdRouteImport } from './routes/_authenticated/teacher/class.$classId'
 import { Route as AuthenticatedParentChildChildIdRouteImport } from './routes/_authenticated/parent/child.$childId'
@@ -166,6 +167,12 @@ const AuthenticatedAdminBlueprintsRoute =
     path: '/blueprints',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAnswerKeysRoute =
+  AuthenticatedAdminAnswerKeysRouteImport.update({
+    id: '/answer-keys',
+    path: '/answer-keys',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedStudentExamsIndexRoute =
   AuthenticatedStudentExamsIndexRouteImport.update({
     id: '/exams/',
@@ -207,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
+  '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/generate': typeof AuthenticatedAdminGenerateRoute
@@ -232,6 +240,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/app': typeof AuthenticatedAppRoute
+  '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/generate': typeof AuthenticatedAdminGenerateRoute
@@ -263,6 +272,7 @@ export interface FileRoutesById {
   '/_authenticated/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/_authenticated/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/_authenticated/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/_authenticated/admin/content': typeof AuthenticatedAdminContentRoute
   '/_authenticated/admin/generate': typeof AuthenticatedAdminGenerateRoute
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/student'
     | '/teacher'
     | '/app'
+    | '/admin/answer-keys'
     | '/admin/blueprints'
     | '/admin/content'
     | '/admin/generate'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/app'
+    | '/admin/answer-keys'
     | '/admin/blueprints'
     | '/admin/content'
     | '/admin/generate'
@@ -349,6 +361,7 @@ export interface FileRouteTypes {
     | '/_authenticated/student'
     | '/_authenticated/teacher'
     | '/_authenticated/app'
+    | '/_authenticated/admin/answer-keys'
     | '/_authenticated/admin/blueprints'
     | '/_authenticated/admin/content'
     | '/_authenticated/admin/generate'
@@ -540,6 +553,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBlueprintsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/answer-keys': {
+      id: '/_authenticated/admin/answer-keys'
+      path: '/answer-keys'
+      fullPath: '/admin/answer-keys'
+      preLoaderRoute: typeof AuthenticatedAdminAnswerKeysRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/student/exams/': {
       id: '/_authenticated/student/exams/'
       path: '/exams'
@@ -579,6 +599,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminAnswerKeysRoute: typeof AuthenticatedAdminAnswerKeysRoute
   AuthenticatedAdminBlueprintsRoute: typeof AuthenticatedAdminBlueprintsRoute
   AuthenticatedAdminContentRoute: typeof AuthenticatedAdminContentRoute
   AuthenticatedAdminGenerateRoute: typeof AuthenticatedAdminGenerateRoute
@@ -590,6 +611,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminAnswerKeysRoute: AuthenticatedAdminAnswerKeysRoute,
     AuthenticatedAdminBlueprintsRoute: AuthenticatedAdminBlueprintsRoute,
     AuthenticatedAdminContentRoute: AuthenticatedAdminContentRoute,
     AuthenticatedAdminGenerateRoute: AuthenticatedAdminGenerateRoute,
