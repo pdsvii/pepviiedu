@@ -228,15 +228,25 @@ export const submitExamSession = createServerFn({ method: "POST" })
       let points = 0, correct: boolean | null = null;
       let feedback: any = null;
       if (openTypes.has(q.type)) {
-        const g = await gradeOpenWithAI(q, it.student_answer);
-        points = g.points;
-        feedback = g.feedback;
-        correct = points >= 0.7;
+        // A typed answer is checked against the answer key first (instant and
+        // deterministic); AI marking is the fallback when no key exists.
+        const keyed = keyIsUsable(q.type, q.answer_key) ? gradeAnswer(q.type, q.answer_key, it.student_answer) : null;
+        if (keyed && keyed.status !== "unscored") {
+          points = keyed.score ?? 0;
+          correct = keyed.correct;
+          feedback = { source: "answer_key", note: keyed.reason, matched: keyed.matched ?? [] };
+        } else {
+          const g = await gradeOpenWithAI(q, it.student_answer);
+          points = g.points;
+          feedback = { source: "ai", ...g.feedback };
+          correct = points >= 0.7;
+        }
       } else {
         const g = gradeObjective(q, it.student_answer);
         points = g.points;
         correct = g.correct;
       }
+
       await supabase.from("exam_session_items").update({
         is_correct: correct, points_awarded: points, ai_feedback: feedback,
       }).eq("id", it.id);
