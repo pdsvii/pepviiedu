@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Band } from "@/lib/pep";
+import { gradeAnswer, keyIsUsable } from "@/lib/grading";
 
 const SubjectEnum = z.enum(["mathematics", "language_arts", "science", "social_studies"]);
 const ComponentEnum = z.enum(["AT", "CBT", "PT"]);
@@ -161,43 +162,12 @@ export const saveExamAnswer = createServerFn({ method: "POST" })
     return { remaining_seconds: remaining };
   });
 
-// -------- Grade objective answer --------
+// -------- Grade objective answer (shared grader) --------
 function gradeObjective(q: any, answer: any): { correct: boolean; points: number } {
-  if (answer === null || answer === undefined) return { correct: false, points: 0 };
-  const key = q.answer_key;
-  if (key == null) return { correct: false, points: 0 };
-  const type = q.type;
-  try {
-    if (type === "mc" || type === "tf") {
-      const ok = String(answer) === String(key.value ?? key);
-      return { correct: ok, points: ok ? 1 : 0 };
-    }
-    if (type === "multi") {
-      const a = Array.isArray(answer) ? [...answer].sort() : [];
-      const k = Array.isArray(key.values ?? key) ? [...(key.values ?? key)].sort() : [];
-      const ok = a.length === k.length && a.every((v, i) => String(v) === String(k[i]));
-      return { correct: ok, points: ok ? 1 : 0 };
-    }
-    if (type === "numeric") {
-      const num = Number(answer);
-      const target = Number(key.value ?? key);
-      const tol = Number(key.tolerance ?? 0);
-      const ok = !Number.isNaN(num) && Math.abs(num - target) <= tol;
-      return { correct: ok, points: ok ? 1 : 0 };
-    }
-    if (type === "short_text") {
-      const a = String(answer ?? "").trim().toLowerCase();
-      const accepts: string[] = Array.isArray(key.accepts) ? key.accepts : [String(key.value ?? key)];
-      const ok = accepts.some((x) => String(x).trim().toLowerCase() === a);
-      return { correct: ok, points: ok ? 1 : 0 };
-    }
-    if (type === "matching" || type === "ordering") {
-      const ok = JSON.stringify(answer) === JSON.stringify(key.value ?? key);
-      return { correct: ok, points: ok ? 1 : 0 };
-    }
-  } catch { /* ignore */ }
-  return { correct: false, points: 0 };
+  const g = gradeAnswer(q.type, q.answer_key, answer);
+  return { correct: g.correct === true, points: g.score ?? 0 };
 }
+
 
 async function gradeOpenWithAI(q: any, answer: any): Promise<{ points: number; feedback: any }> {
   const key = process.env.LOVABLE_API_KEY;
@@ -258,15 +228,25 @@ export const submitExamSession = createServerFn({ method: "POST" })
       let points = 0, correct: boolean | null = null;
       let feedback: any = null;
       if (openTypes.has(q.type)) {
-        const g = await gradeOpenWithAI(q, it.student_answer);
-        points = g.points;
-        feedback = g.feedback;
-        correct = points >= 0.7;
+        // A typed answer is checked against the answer key first (instant and
+        // deterministic); AI marking is the fallback when no key exists.
+        const keyed = keyIsUsable(q.type, q.answer_key) ? gradeAnswer(q.type, q.answer_key, it.student_answer) : null;
+        if (keyed && keyed.status !== "unscored") {
+          points = keyed.score ?? 0;
+          correct = keyed.correct;
+          feedback = { source: "answer_key", note: keyed.reason, matched: keyed.matched ?? [] };
+        } else {
+          const g = await gradeOpenWithAI(q, it.student_answer);
+          points = g.points;
+          feedback = { source: "ai", ...g.feedback };
+          correct = points >= 0.7;
+        }
       } else {
         const g = gradeObjective(q, it.student_answer);
         points = g.points;
         correct = g.correct;
       }
+
       await supabase.from("exam_session_items").update({
         is_correct: correct, points_awarded: points, ai_feedback: feedback,
       }).eq("id", it.id);

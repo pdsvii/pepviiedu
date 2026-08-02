@@ -445,3 +445,46 @@ For mc: answer_key.value is the 0-based index of the correct option.`;
     if (insErr) throw insErr;
     return { inserted: inserted?.length ?? 0 };
   });
+
+// -------- Answer keys --------
+// Items whose key is missing/unusable come first so admins can close gaps fast.
+export const listAnswerKeyQueue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    status: z.enum(["all", "missing", "ready"]).default("all"),
+    source: z.enum(["all", "moey_official_2018", "ai_generated"]).default("all"),
+    search: z.string().optional(),
+    limit: z.number().int().min(1).max(500).default(300),
+  }).parse(i ?? {}))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    let q = context.supabase
+      .from("questions")
+      .select("id, type, stem, options, answer_key, rubric, explanation, difficulty, source, source_ref, needs_review, topics(name, subject, grade, component, strand)")
+      .limit(data.limit);
+    if (data.source !== "all") q = q.eq("source", data.source);
+    if (data.search) q = q.ilike("stem", `%${data.search}%`);
+    const { data: rows, error } = await q;
+    if (error) throw error;
+    return rows ?? [];
+  });
+
+export const setAnswerKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    id: z.string().uuid(),
+    answer_key: z.any(),
+    explanation: z.string().optional().nullable(),
+    needs_review: z.boolean().optional(),
+  }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const update: any = { answer_key: data.answer_key ?? null };
+    if (data.explanation !== undefined) update.explanation = data.explanation;
+    if (data.needs_review !== undefined) update.needs_review = data.needs_review;
+    const { data: out, error } = await context.supabase
+      .from("questions").update(update).eq("id", data.id)
+      .select("id, answer_key, needs_review, explanation").single();
+    if (error) throw error;
+    return out;
+  });
