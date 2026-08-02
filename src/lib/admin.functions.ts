@@ -152,9 +152,9 @@ export const upsertTopic = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) =>
     z.object({
       id: z.string().uuid().optional(),
-      subject: z.enum(["math","language_arts","science","social_studies"]),
+      subject: z.enum(["mathematics","language_arts","science","social_studies"]),
       grade: z.number().int().min(4).max(6),
-      component: z.enum(["ability","curriculum","performance_task"]),
+      component: z.enum(["AT","CBT","PT"]),
       name: z.string().min(1),
       strand: z.string().optional().nullable(),
     }).parse(i),
@@ -188,7 +188,7 @@ export const listQuestions = createServerFn({ method: "POST" })
   }).parse(i ?? {}))
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
-    let q = context.supabase.from("questions").select("id, topic_id, type, stem, difficulty, source, source_ref, needs_review, created_at, topics(name, subject, grade, component)").order("created_at", { ascending: false }).limit(data.limit);
+    let q = context.supabase.from("questions").select("id, topic_id, type, stem, options, answer_key, rubric, explanation, media, passage_id, difficulty, source, source_ref, needs_review, created_at, topics(name, subject, grade, component)").order("created_at", { ascending: false }).limit(data.limit);
     if (data.topic_id) q = q.eq("topic_id", data.topic_id);
     if (data.source && data.source !== "all") q = q.eq("source", data.source);
     if (data.needs_review !== undefined) q = q.eq("needs_review", data.needs_review);
@@ -202,7 +202,7 @@ export const upsertQuestion = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid().optional(),
       topic_id: z.string().uuid(),
-      type: z.enum(["mcq","multi","short","numeric","perf_task"]),
+      type: z.enum(["mc","multi","tf","numeric","matching","ordering","short_text","pt_scenario"]),
       stem: z.string().min(1),
       options: z.any().optional(),
       answer_key: z.any().optional(),
