@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
+import { Brand } from "@/components/Brand";
 
 type NavItem = { to: string; label: string };
 

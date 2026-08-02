@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { Brand } from "@/components/Brand";
 import { GraduationCap, School, Sparkles, Users } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -10,10 +11,7 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-2xl bg-primary text-primary-foreground display font-bold">v</span>
-          <span className="display text-xl font-bold">PEP Ready</span>
-        </Link>
+        <Brand />
         <div className="flex items-center gap-2">
           <Link to="/auth"><Button variant="ghost">Sign in</Button></Link>
           <Link to="/auth" search={{ mode: "signup" as const }}>
