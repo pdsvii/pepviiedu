@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { StemText } from "@/components/StemText";
 import { ADMIN_NAV } from "./index";
 import { listAnswerKeyQueue, setAnswerKey } from "@/lib/admin.functions";
 import { gradeAnswer, keyIsUsable, type AnswerKey, type QType } from "@/lib/grading";
@@ -146,7 +147,7 @@ function KeyCard({ q, onSaved }: { q: any; onSaved: () => void }) {
         {q.source === "moey_official_2018" && <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold">Official MOEY</span>}
       </header>
 
-      <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">{q.stem}</p>
+      <StemText stem={q.stem} className="mt-3 text-sm" />
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <div className="grid gap-3">

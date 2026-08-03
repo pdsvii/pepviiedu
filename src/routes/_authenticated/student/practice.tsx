@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { startPracticeSession, submitAnswer, finishPracticeSession } from "@/lib/practice.functions";
 import { AppShell } from "@/components/AppShell";
 import { QuestionRenderer, type Question } from "@/components/QuestionRenderer";
+import { StemText } from "@/components/StemText";
 import { BandBadge } from "@/components/BandBadge";
 import { BAND_MESSAGE, SUBJECTS, COMPONENTS, type Band, type Subject, type PepComponent } from "@/lib/pep";
 import { Button } from "@/components/ui/button";
@@ -151,7 +152,7 @@ function PracticePage() {
             </div>
           )}
 
-          <div className="mb-4 text-lg font-semibold">{questions[idx].stem}</div>
+          <StemText stem={questions[idx].stem} className="mb-4 text-lg font-semibold" />
           <QuestionRenderer q={questions[idx]} value={answer} onChange={setAnswer} disabled={!!feedback} />
 
           {feedback && (
