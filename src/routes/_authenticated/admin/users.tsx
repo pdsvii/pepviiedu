@@ -18,7 +18,7 @@ import { KeyRound, Ban, RotateCcw, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({ component: AdminUsers });
 
-const ROLES = ["student", "parent", "teacher", "admin"] as const;
+const ROLES = ["student", "parent", "teacher", "tester", "admin"] as const;
 
 function AdminUsers() {
   const qc = useQueryClient();

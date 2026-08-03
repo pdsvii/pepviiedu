@@ -37,7 +37,7 @@ export const listUsers = createServerFn({ method: "POST" })
 export const setUserRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({ user_id: z.string().uuid(), role: z.enum(["student","parent","teacher","admin"]) }).parse(i),
+    z.object({ user_id: z.string().uuid(), role: z.enum(["student","parent","teacher","tester","admin"]) }).parse(i),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context.supabase, context.userId);
@@ -84,7 +84,7 @@ export const adminCreateUser = createServerFn({ method: "POST" })
       email: z.string().email(),
       password: z.string().min(6).max(72),
       full_name: z.string().min(1).max(120),
-      role: z.enum(["student","parent","teacher","admin"]),
+      role: z.enum(["student","parent","teacher","tester","admin"]),
       grade: z.number().int().min(4).max(6).optional(),
     }).parse(i),
   )
