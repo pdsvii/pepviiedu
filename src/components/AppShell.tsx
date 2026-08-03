@@ -53,7 +53,7 @@ export function AppShell({
           ))}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main className="mx-auto max-w-6xl px-4 pb-6 pt-10">
         <h1 className="display mb-4 text-2xl font-bold md:text-3xl">{title}</h1>
         {children}
       </main>
