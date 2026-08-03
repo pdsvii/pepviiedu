@@ -83,6 +83,31 @@ export function QuestionRenderer({
   }
   if (q.type === "short_text" || q.type === "pt_scenario") {
     const long = q.type === "pt_scenario";
+    const parts = findParts(q.stem);
+
+    if (parts.length > 1) {
+      const current = parseParts(value, parts);
+      return (
+        <div className="-mt-2 grid gap-2 rounded-2xl border-2 border-dashed border-primary/40 bg-muted/40 p-3">
+          {parts.map((label) => (
+            <div key={label}>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                Your answer — part {label}
+              </label>
+              <Textarea
+                value={current[label] ?? ""}
+                disabled={disabled}
+                rows={long ? 5 : 2}
+                onChange={(e) => onChange(serializeParts(parts, { ...current, [label]: e.target.value }))}
+                className="resize-y rounded-xl border-2 bg-background text-base leading-relaxed"
+                placeholder={`Answer for ${label}`}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     return (
       <div className="-mt-2 rounded-2xl border-2 border-dashed border-primary/40 bg-muted/40 p-3">
         <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted-foreground">
