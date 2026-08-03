@@ -7,7 +7,7 @@
 
 type Block =
   | { kind: "prose"; lines: string[] }
-  | { kind: "table"; header: string[]; rows: string[][] };
+  | { kind: "table"; header: string[]; rows: string[][]; offsets?: number[] };
 
 const isTableLine = (line: string) => /\t/.test(line) || /\S\s{2,}\S/.test(line);
 /** short leftovers like "5", "8", ".075", "4. 0.6%" belong to the table above */
