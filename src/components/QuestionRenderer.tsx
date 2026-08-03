@@ -82,11 +82,23 @@ export function QuestionRenderer({
     );
   }
   if (q.type === "short_text" || q.type === "pt_scenario") {
+    const long = q.type === "pt_scenario";
     return (
-      <Textarea value={value ?? ""} disabled={disabled} rows={q.type === "pt_scenario" ? 8 : 4}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={q.type === "pt_scenario" ? "Explain your thinking with steps and reasons…" : "Write your answer"} />
+      <div className="-mt-2 rounded-2xl border-2 border-dashed border-primary/40 bg-muted/40 p-3">
+        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          Your answer
+        </label>
+        <Textarea
+          value={value ?? ""}
+          disabled={disabled}
+          rows={long ? 8 : 3}
+          onChange={(e) => onChange(e.target.value)}
+          className="resize-y rounded-xl border-2 bg-background text-base leading-relaxed"
+          placeholder={long ? "Explain your thinking with steps and reasons…" : "Type your answer here"}
+        />
+      </div>
     );
   }
+
   return <div className="rounded-2xl bg-muted p-4 text-sm">This question type isn't playable yet.</div>;
 }
