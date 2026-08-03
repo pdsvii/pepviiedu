@@ -26,8 +26,17 @@ function buildTable(lines: string[]): Block {
   const width = Math.max(header.length, 1);
   const groups: string[][] = [];
   for (const line of lines.slice(1)) {
-    if (groups.length === 0 || startsRow(line)) groups.push([line]);
-    else groups[groups.length - 1].push(line);
+    if (groups.length === 0) {
+      groups.push([line]);
+    } else if (startsRow(line)) {
+      // a fraction numerator often sits on the line ABOVE its row number
+      const prev = groups[groups.length - 1];
+      const pulled: string[] = [];
+      while (prev.length > 1 && /^\s*\d+\s*$/.test(prev[prev.length - 1])) pulled.unshift(prev.pop()!);
+      groups.push([...pulled, line]);
+    } else {
+      groups[groups.length - 1].push(line);
+    }
   }
 
   const pctCol = colFor(header, "percent", "%");
@@ -36,8 +45,9 @@ function buildTable(lines: string[]): Block {
   const smart = pctCol >= 0 || fracCol >= 0 || decCol >= 0;
 
   const rows = groups.map((group) => {
-    const tokens = group.flatMap(splitCells).flatMap((c) => c.split(/\s+/));
-    const label = tokens[0] && startsRow(tokens[0]) ? tokens.shift()!.replace(/[.)]$/, "") : "";
+    const tokens = group.flatMap(splitCells).flatMap((c) => c.split(/\s+/)).filter(Boolean);
+    const labelAt = tokens.findIndex((t) => /^\d+[.)]$/.test(t));
+    const label = labelAt >= 0 ? tokens.splice(labelAt, 1)[0].replace(/[.)]$/, "") : "";
     const cells = Array<string>(width).fill("");
 
     if (smart) {
