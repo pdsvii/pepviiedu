@@ -6,6 +6,12 @@ import { LogOut } from "lucide-react";
 import { Brand } from "@/components/Brand";
 
 type NavItem = { to: string; label: string };
+type NavSection = { label: string; items: NavItem[] };
+type Nav = NavItem | NavSection;
+
+function isNavSection(n: Nav): n is NavSection {
+  return "items" in n;
+}
 
 export function AppShell({
   variant = "adult",
@@ -14,7 +20,7 @@ export function AppShell({
   children,
 }: {
   variant?: "adult" | "student";
-  nav: NavItem[];
+  nav: Nav[];
   title: string;
   children: React.ReactNode;
 }) {
