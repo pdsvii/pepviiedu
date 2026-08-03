@@ -16,6 +16,7 @@ export const ADMIN_NAV = [
   { to: "/admin/generate", label: "Generate Items" },
   { to: "/admin/variations", label: "Variations" },
   { to: "/admin/schools", label: "Schools" },
+  { to: "/admin/feedback", label: "Tester feedback" },
   { to: "/admin/settings", label: "Settings" },
 ];
 

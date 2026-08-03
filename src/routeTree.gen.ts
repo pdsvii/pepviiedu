@@ -35,6 +35,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminSchoolsRouteImport } from './routes/_authenticated/admin/schools'
 import { Route as AuthenticatedAdminGenerateRouteImport } from './routes/_authenticated/admin/generate'
+import { Route as AuthenticatedAdminFeedbackRouteImport } from './routes/_authenticated/admin/feedback'
 import { Route as AuthenticatedAdminContentRouteImport } from './routes/_authenticated/admin/content'
 import { Route as AuthenticatedAdminBlueprintsRouteImport } from './routes/_authenticated/admin/blueprints'
 import { Route as AuthenticatedAdminAnswerKeysRouteImport } from './routes/_authenticated/admin/answer-keys'
@@ -190,6 +191,12 @@ const AuthenticatedAdminGenerateRoute =
     path: '/generate',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminFeedbackRoute =
+  AuthenticatedAdminFeedbackRouteImport.update({
+    id: '/feedback',
+    path: '/feedback',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminContentRoute =
   AuthenticatedAdminContentRouteImport.update({
     id: '/content',
@@ -253,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/admin/content': typeof AuthenticatedAdminContentRoute
+  '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/admin/generate': typeof AuthenticatedAdminGenerateRoute
   '/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -283,6 +291,7 @@ export interface FileRoutesByTo {
   '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/admin/content': typeof AuthenticatedAdminContentRoute
+  '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/admin/generate': typeof AuthenticatedAdminGenerateRoute
   '/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -320,6 +329,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/_authenticated/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/_authenticated/admin/content': typeof AuthenticatedAdminContentRoute
+  '/_authenticated/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/_authenticated/admin/generate': typeof AuthenticatedAdminGenerateRoute
   '/_authenticated/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/answer-keys'
     | '/admin/blueprints'
     | '/admin/content'
+    | '/admin/feedback'
     | '/admin/generate'
     | '/admin/schools'
     | '/admin/settings'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/admin/answer-keys'
     | '/admin/blueprints'
     | '/admin/content'
+    | '/admin/feedback'
     | '/admin/generate'
     | '/admin/schools'
     | '/admin/settings'
@@ -423,6 +435,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/answer-keys'
     | '/_authenticated/admin/blueprints'
     | '/_authenticated/admin/content'
+    | '/_authenticated/admin/feedback'
     | '/_authenticated/admin/generate'
     | '/_authenticated/admin/schools'
     | '/_authenticated/admin/settings'
@@ -637,6 +650,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminGenerateRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/feedback': {
+      id: '/_authenticated/admin/feedback'
+      path: '/feedback'
+      fullPath: '/admin/feedback'
+      preLoaderRoute: typeof AuthenticatedAdminFeedbackRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/content': {
       id: '/_authenticated/admin/content'
       path: '/content'
@@ -700,6 +720,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAnswerKeysRoute: typeof AuthenticatedAdminAnswerKeysRoute
   AuthenticatedAdminBlueprintsRoute: typeof AuthenticatedAdminBlueprintsRoute
   AuthenticatedAdminContentRoute: typeof AuthenticatedAdminContentRoute
+  AuthenticatedAdminFeedbackRoute: typeof AuthenticatedAdminFeedbackRoute
   AuthenticatedAdminGenerateRoute: typeof AuthenticatedAdminGenerateRoute
   AuthenticatedAdminSchoolsRoute: typeof AuthenticatedAdminSchoolsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -713,6 +734,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminAnswerKeysRoute: AuthenticatedAdminAnswerKeysRoute,
     AuthenticatedAdminBlueprintsRoute: AuthenticatedAdminBlueprintsRoute,
     AuthenticatedAdminContentRoute: AuthenticatedAdminContentRoute,
+    AuthenticatedAdminFeedbackRoute: AuthenticatedAdminFeedbackRoute,
     AuthenticatedAdminGenerateRoute: AuthenticatedAdminGenerateRoute,
     AuthenticatedAdminSchoolsRoute: AuthenticatedAdminSchoolsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
