@@ -31,19 +31,21 @@ export function AppShell({
   return (
     <div className={variant === "student" ? "student-surface min-h-screen bg-background" : "min-h-screen bg-background"}>
       <header className="sticky top-0 z-10 border-b bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Brand />
+        <div className="mx-auto flex max-w-6xl flex-col px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Brand />
+            <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sign out">
+              <LogOut className="mr-1 h-4 w-4" /> Sign out
+            </Button>
+          </div>
 
-          <nav className="hidden gap-1 md:flex">
+          <nav className="mt-3 hidden flex-wrap gap-1 md:flex">
             {nav.map((n) => (
               <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
                 {n.label}
               </Link>
             ))}
           </nav>
-          <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sign out">
-            <LogOut className="mr-1 h-4 w-4" /> Sign out
-          </Button>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-2 pb-2 md:hidden">
           {nav.map((n) => (
