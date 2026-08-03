@@ -57,41 +57,16 @@ function normalizeOptions(options: any): string[] | null {
   return null;
 }
 
-/** Loose comparison so mixed answer_key shapes (index, letter, text, array) all work. */
+/** Loose comparison so mixed answer_key shapes (index, letter, text, array, {correct}) all work. */
 function isCorrect(q: any, value: any): boolean | null {
-  const key = q.answer_key;
-  if (key === null || key === undefined || key === "") return null;
   const opts = normalizeOptions(q.options) ?? (q.type === "tf" ? ["True", "False"] : []);
-  const norm = (v: any) => String(v).trim().toLowerCase();
-  const toIndex = (k: any): number | null => {
-    if (typeof k === "number") return k;
-    const s = norm(k);
-    if (/^[a-h]$/.test(s)) return s.charCodeAt(0) - 97;
-    if (/^\d+$/.test(s)) return Number(s);
-    const i = opts.findIndex((o) => norm(o) === s);
-    return i >= 0 ? i : null;
-  };
-
-  if (q.type === "mc" || q.type === "tf") {
-    const k = Array.isArray(key) ? key[0] : typeof key === "object" ? (key as any).value ?? (key as any).answer : key;
-    const idx = toIndex(k);
-    return idx === null ? null : value === idx;
-  }
-  if (q.type === "multi") {
-    const keys = (Array.isArray(key) ? key : [key]).map(toIndex).filter((x): x is number => x !== null).sort();
-    const got = (Array.isArray(value) ? value : []).slice().sort();
-    return keys.length > 0 && keys.length === got.length && keys.every((k, i) => k === got[i]);
-  }
-  if (q.type === "numeric") {
-    const k = Array.isArray(key) ? key[0] : typeof key === "object" ? (key as any).value : key;
-    return Number(value) === Number(k);
-  }
-  if (q.type === "short_text") {
-    const accepted = (Array.isArray(key) ? key : [key]).map(norm);
-    return accepted.includes(norm(value));
-  }
-  return null;
+  const key = normalizeAnswerKey(q.type, q.answer_key, opts);
+  if (!keyIsUsable(q.type, key)) return null;
+  const res = gradeAnswer(q.type, key, value);
+  if (res.status === "unscored") return null;
+  return res.correct === true;
 }
+
 
 function InteractiveQuestion({ q }: { q: any }) {
   const [value, setValue] = useState<any>(q.type === "multi" ? [] : undefined);
