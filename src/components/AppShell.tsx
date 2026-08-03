@@ -39,6 +39,14 @@ export function AppShell({
     });
   }
 
+  function closeSection(i: number) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      next.delete(i);
+      return next;
+    });
+  }
+
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
@@ -67,7 +75,7 @@ export function AppShell({
                   {openSections.has(i) && (
                     <div className="absolute left-0 top-full z-20 mt-1 flex w-max min-w-[12rem] flex-col gap-1 rounded-2xl border bg-background p-2 shadow-lg">
                       {section.items.map((n) => (
-                        <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
+                        <Link key={n.to} to={n.to} onClick={() => closeSection(i)} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
                           {n.label}
                         </Link>
                       ))}
