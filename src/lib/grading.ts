@@ -144,12 +144,60 @@ function acceptedList(key: NonNullable<AnswerKey>): string[] {
   return Array.from(new Set(out));
 }
 
-function correctIndexes(key: NonNullable<AnswerKey>): number[] {
+export function correctIndexes(key: AnswerKey): number[] {
+  if (!key || typeof key !== "object") return [];
   const raw = key.correct ?? key.values ?? key.value;
   if (Array.isArray(raw)) return raw.map((v) => Number(v)).filter((n) => Number.isFinite(n));
   const n = Number(raw);
   return Number.isFinite(n) ? [n] : [];
 }
+
+/**
+ * Coerce any stored answer_key shape (bare index, letter, option text, array,
+ * {value}/{answer}/{index}/{indices}) into the canonical AnswerKey the grader reads.
+ */
+export function normalizeAnswerKey(type: QType, raw: unknown, options: string[] = []): AnswerKey {
+  if (raw === null || raw === undefined || raw === "") return null;
+  const objective = ["mc", "tf", "multi", "matching", "ordering"].includes(type);
+  const opts = options.length ? options : type === "tf" ? ["True", "False"] : [];
+  const toIndex = (v: unknown): number | null => {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    const s = normalizeText(v);
+    if (/^[a-h]$/.test(s)) return s.charCodeAt(0) - 97;
+    if (/^\d+$/.test(s)) return Number(s);
+    const i = opts.findIndex((o) => normalizeText(o) === s);
+    return i >= 0 ? i : null;
+  };
+
+  if (objective) {
+    let candidates: unknown[] = [];
+    if (Array.isArray(raw)) candidates = raw;
+    else if (typeof raw === "object") {
+      const o = raw as any;
+      const c = o.correct ?? o.indices ?? o.index ?? o.values ?? o.value ?? o.answer;
+      candidates = Array.isArray(c) ? c : c === undefined ? [] : [c];
+    } else candidates = [raw];
+    const idx = candidates.map(toIndex).filter((n): n is number => n !== null);
+    if (!idx.length) return null;
+    return type === "mc" || type === "tf" ? { correct: idx[0]! } : { correct: idx };
+  }
+
+  if (typeof raw === "object" && !Array.isArray(raw)) {
+    const o = raw as any;
+    if (o.value !== undefined || o.accepted || o.accepts || o.keywords || o.values) return o as AnswerKey;
+    if (o.correct !== undefined) {
+      return type === "numeric"
+        ? { value: o.correct, tolerance: o.tolerance }
+        : { accepted: (Array.isArray(o.correct) ? o.correct : [o.correct]).map(String) };
+    }
+    return o as AnswerKey;
+  }
+
+  const list = (Array.isArray(raw) ? raw : [raw]).filter((v) => v !== null && v !== undefined && String(v).trim() !== "");
+  if (!list.length) return null;
+  return type === "numeric" ? { value: list[0] as any } : { accepted: list.map(String) };
+}
+
 
 /** True when the key has enough information to auto-grade this question type. */
 export function keyIsUsable(type: QType, key: AnswerKey): boolean {
