@@ -638,6 +638,68 @@ export type Database = {
           },
         ]
       }
+      review_notes: {
+        Row: {
+          admin_response: string | null
+          area: string
+          author_id: string
+          body: string
+          category: string
+          created_at: string
+          id: string
+          question_id: string | null
+          resolved_at: string | null
+          route: string | null
+          severity: string
+          status: string
+          suggested_fix: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_response?: string | null
+          area?: string
+          author_id: string
+          body: string
+          category?: string
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          resolved_at?: string | null
+          route?: string | null
+          severity?: string
+          status?: string
+          suggested_fix?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_response?: string | null
+          area?: string
+          author_id?: string
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          resolved_at?: string | null
+          route?: string | null
+          severity?: string
+          status?: string
+          suggested_fix?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_notes_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rewards: {
         Row: {
           earned_at: string
@@ -752,10 +814,11 @@ export type Database = {
         Args: { _student: string; _teacher: string }
         Returns: boolean
       }
+      is_tester: { Args: { _user_id: string }; Returns: boolean }
       join_class_by_code: { Args: { _code: string }; Returns: string }
     }
     Enums: {
-      app_role: "student" | "parent" | "teacher" | "admin"
+      app_role: "student" | "parent" | "teacher" | "admin" | "tester"
       pep_component: "AT" | "CBT" | "PT"
       proficiency_band:
         | "beginning"
@@ -899,7 +962,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "parent", "teacher", "admin"],
+      app_role: ["student", "parent", "teacher", "admin", "tester"],
       pep_component: ["AT", "CBT", "PT"],
       proficiency_band: [
         "beginning",

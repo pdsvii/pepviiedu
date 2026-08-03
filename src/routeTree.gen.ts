@@ -15,14 +15,18 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedTesterRouteRouteImport } from './routes/_authenticated/tester/route'
 import { Route as AuthenticatedTeacherRouteRouteImport } from './routes/_authenticated/teacher/route'
 import { Route as AuthenticatedStudentRouteRouteImport } from './routes/_authenticated/student/route'
 import { Route as AuthenticatedParentRouteRouteImport } from './routes/_authenticated/parent/route'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedTesterIndexRouteImport } from './routes/_authenticated/tester/index'
 import { Route as AuthenticatedTeacherIndexRouteImport } from './routes/_authenticated/teacher/index'
 import { Route as AuthenticatedStudentIndexRouteImport } from './routes/_authenticated/student/index'
 import { Route as AuthenticatedParentIndexRouteImport } from './routes/_authenticated/parent/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedTesterQuestionsRouteImport } from './routes/_authenticated/tester/questions'
+import { Route as AuthenticatedTesterNotesRouteImport } from './routes/_authenticated/tester/notes'
 import { Route as AuthenticatedTeacherAssignmentsRouteImport } from './routes/_authenticated/teacher/assignments'
 import { Route as AuthenticatedStudentRewardsRouteImport } from './routes/_authenticated/student/rewards'
 import { Route as AuthenticatedStudentPracticeRouteImport } from './routes/_authenticated/student/practice'
@@ -31,6 +35,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminSchoolsRouteImport } from './routes/_authenticated/admin/schools'
 import { Route as AuthenticatedAdminGenerateRouteImport } from './routes/_authenticated/admin/generate'
+import { Route as AuthenticatedAdminFeedbackRouteImport } from './routes/_authenticated/admin/feedback'
 import { Route as AuthenticatedAdminContentRouteImport } from './routes/_authenticated/admin/content'
 import { Route as AuthenticatedAdminBlueprintsRouteImport } from './routes/_authenticated/admin/blueprints'
 import { Route as AuthenticatedAdminAnswerKeysRouteImport } from './routes/_authenticated/admin/answer-keys'
@@ -69,6 +74,12 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTesterRouteRoute =
+  AuthenticatedTesterRouteRouteImport.update({
+    id: '/tester',
+    path: '/tester',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTeacherRouteRoute =
   AuthenticatedTeacherRouteRouteImport.update({
     id: '/teacher',
@@ -92,6 +103,12 @@ const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTesterIndexRoute =
+  AuthenticatedTesterIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedTesterRouteRoute,
+  } as any)
 const AuthenticatedTeacherIndexRoute =
   AuthenticatedTeacherIndexRouteImport.update({
     id: '/',
@@ -115,6 +132,18 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedTesterQuestionsRoute =
+  AuthenticatedTesterQuestionsRouteImport.update({
+    id: '/questions',
+    path: '/questions',
+    getParentRoute: () => AuthenticatedTesterRouteRoute,
+  } as any)
+const AuthenticatedTesterNotesRoute =
+  AuthenticatedTesterNotesRouteImport.update({
+    id: '/notes',
+    path: '/notes',
+    getParentRoute: () => AuthenticatedTesterRouteRoute,
+  } as any)
 const AuthenticatedTeacherAssignmentsRoute =
   AuthenticatedTeacherAssignmentsRouteImport.update({
     id: '/assignments',
@@ -160,6 +189,12 @@ const AuthenticatedAdminGenerateRoute =
   AuthenticatedAdminGenerateRouteImport.update({
     id: '/generate',
     path: '/generate',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminFeedbackRoute =
+  AuthenticatedAdminFeedbackRouteImport.update({
+    id: '/feedback',
+    path: '/feedback',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminContentRoute =
@@ -220,10 +255,12 @@ export interface FileRoutesByFullPath {
   '/parent': typeof AuthenticatedParentRouteRouteWithChildren
   '/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
+  '/tester': typeof AuthenticatedTesterRouteRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/admin/content': typeof AuthenticatedAdminContentRoute
+  '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/admin/generate': typeof AuthenticatedAdminGenerateRoute
   '/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -232,10 +269,13 @@ export interface FileRoutesByFullPath {
   '/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/tester/notes': typeof AuthenticatedTesterNotesRoute
+  '/tester/questions': typeof AuthenticatedTesterQuestionsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/parent/': typeof AuthenticatedParentIndexRoute
   '/student/': typeof AuthenticatedStudentIndexRoute
   '/teacher/': typeof AuthenticatedTeacherIndexRoute
+  '/tester/': typeof AuthenticatedTesterIndexRoute
   '/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
   '/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
   '/student/exams/': typeof AuthenticatedStudentExamsIndexRoute
@@ -251,6 +291,7 @@ export interface FileRoutesByTo {
   '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/admin/content': typeof AuthenticatedAdminContentRoute
+  '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/admin/generate': typeof AuthenticatedAdminGenerateRoute
   '/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -259,10 +300,13 @@ export interface FileRoutesByTo {
   '/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/tester/notes': typeof AuthenticatedTesterNotesRoute
+  '/tester/questions': typeof AuthenticatedTesterQuestionsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/parent': typeof AuthenticatedParentIndexRoute
   '/student': typeof AuthenticatedStudentIndexRoute
   '/teacher': typeof AuthenticatedTeacherIndexRoute
+  '/tester': typeof AuthenticatedTesterIndexRoute
   '/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
   '/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
   '/student/exams': typeof AuthenticatedStudentExamsIndexRoute
@@ -280,10 +324,12 @@ export interface FileRoutesById {
   '/_authenticated/parent': typeof AuthenticatedParentRouteRouteWithChildren
   '/_authenticated/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/_authenticated/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
+  '/_authenticated/tester': typeof AuthenticatedTesterRouteRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/_authenticated/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
   '/_authenticated/admin/content': typeof AuthenticatedAdminContentRoute
+  '/_authenticated/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/_authenticated/admin/generate': typeof AuthenticatedAdminGenerateRoute
   '/_authenticated/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -292,10 +338,13 @@ export interface FileRoutesById {
   '/_authenticated/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/_authenticated/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/_authenticated/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/_authenticated/tester/notes': typeof AuthenticatedTesterNotesRoute
+  '/_authenticated/tester/questions': typeof AuthenticatedTesterQuestionsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/parent/': typeof AuthenticatedParentIndexRoute
   '/_authenticated/student/': typeof AuthenticatedStudentIndexRoute
   '/_authenticated/teacher/': typeof AuthenticatedTeacherIndexRoute
+  '/_authenticated/tester/': typeof AuthenticatedTesterIndexRoute
   '/_authenticated/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
   '/_authenticated/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
   '/_authenticated/student/exams/': typeof AuthenticatedStudentExamsIndexRoute
@@ -313,10 +362,12 @@ export interface FileRouteTypes {
     | '/parent'
     | '/student'
     | '/teacher'
+    | '/tester'
     | '/app'
     | '/admin/answer-keys'
     | '/admin/blueprints'
     | '/admin/content'
+    | '/admin/feedback'
     | '/admin/generate'
     | '/admin/schools'
     | '/admin/settings'
@@ -325,10 +376,13 @@ export interface FileRouteTypes {
     | '/student/practice'
     | '/student/rewards'
     | '/teacher/assignments'
+    | '/tester/notes'
+    | '/tester/questions'
     | '/admin/'
     | '/parent/'
     | '/student/'
     | '/teacher/'
+    | '/tester/'
     | '/parent/child/$childId'
     | '/teacher/class/$classId'
     | '/student/exams/'
@@ -344,6 +398,7 @@ export interface FileRouteTypes {
     | '/admin/answer-keys'
     | '/admin/blueprints'
     | '/admin/content'
+    | '/admin/feedback'
     | '/admin/generate'
     | '/admin/schools'
     | '/admin/settings'
@@ -352,10 +407,13 @@ export interface FileRouteTypes {
     | '/student/practice'
     | '/student/rewards'
     | '/teacher/assignments'
+    | '/tester/notes'
+    | '/tester/questions'
     | '/admin'
     | '/parent'
     | '/student'
     | '/teacher'
+    | '/tester'
     | '/parent/child/$childId'
     | '/teacher/class/$classId'
     | '/student/exams'
@@ -372,10 +430,12 @@ export interface FileRouteTypes {
     | '/_authenticated/parent'
     | '/_authenticated/student'
     | '/_authenticated/teacher'
+    | '/_authenticated/tester'
     | '/_authenticated/app'
     | '/_authenticated/admin/answer-keys'
     | '/_authenticated/admin/blueprints'
     | '/_authenticated/admin/content'
+    | '/_authenticated/admin/feedback'
     | '/_authenticated/admin/generate'
     | '/_authenticated/admin/schools'
     | '/_authenticated/admin/settings'
@@ -384,10 +444,13 @@ export interface FileRouteTypes {
     | '/_authenticated/student/practice'
     | '/_authenticated/student/rewards'
     | '/_authenticated/teacher/assignments'
+    | '/_authenticated/tester/notes'
+    | '/_authenticated/tester/questions'
     | '/_authenticated/admin/'
     | '/_authenticated/parent/'
     | '/_authenticated/student/'
     | '/_authenticated/teacher/'
+    | '/_authenticated/tester/'
     | '/_authenticated/parent/child/$childId'
     | '/_authenticated/teacher/class/$classId'
     | '/_authenticated/student/exams/'
@@ -447,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tester': {
+      id: '/_authenticated/tester'
+      path: '/tester'
+      fullPath: '/tester'
+      preLoaderRoute: typeof AuthenticatedTesterRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/teacher': {
       id: '/_authenticated/teacher'
       path: '/teacher'
@@ -475,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tester/': {
+      id: '/_authenticated/tester/'
+      path: '/'
+      fullPath: '/tester/'
+      preLoaderRoute: typeof AuthenticatedTesterIndexRouteImport
+      parentRoute: typeof AuthenticatedTesterRouteRoute
+    }
     '/_authenticated/teacher/': {
       id: '/_authenticated/teacher/'
       path: '/'
@@ -502,6 +579,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/tester/questions': {
+      id: '/_authenticated/tester/questions'
+      path: '/questions'
+      fullPath: '/tester/questions'
+      preLoaderRoute: typeof AuthenticatedTesterQuestionsRouteImport
+      parentRoute: typeof AuthenticatedTesterRouteRoute
+    }
+    '/_authenticated/tester/notes': {
+      id: '/_authenticated/tester/notes'
+      path: '/notes'
+      fullPath: '/tester/notes'
+      preLoaderRoute: typeof AuthenticatedTesterNotesRouteImport
+      parentRoute: typeof AuthenticatedTesterRouteRoute
     }
     '/_authenticated/teacher/assignments': {
       id: '/_authenticated/teacher/assignments'
@@ -557,6 +648,13 @@ declare module '@tanstack/react-router' {
       path: '/generate'
       fullPath: '/admin/generate'
       preLoaderRoute: typeof AuthenticatedAdminGenerateRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/feedback': {
+      id: '/_authenticated/admin/feedback'
+      path: '/feedback'
+      fullPath: '/admin/feedback'
+      preLoaderRoute: typeof AuthenticatedAdminFeedbackRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/content': {
@@ -622,6 +720,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAnswerKeysRoute: typeof AuthenticatedAdminAnswerKeysRoute
   AuthenticatedAdminBlueprintsRoute: typeof AuthenticatedAdminBlueprintsRoute
   AuthenticatedAdminContentRoute: typeof AuthenticatedAdminContentRoute
+  AuthenticatedAdminFeedbackRoute: typeof AuthenticatedAdminFeedbackRoute
   AuthenticatedAdminGenerateRoute: typeof AuthenticatedAdminGenerateRoute
   AuthenticatedAdminSchoolsRoute: typeof AuthenticatedAdminSchoolsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -635,6 +734,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminAnswerKeysRoute: AuthenticatedAdminAnswerKeysRoute,
     AuthenticatedAdminBlueprintsRoute: AuthenticatedAdminBlueprintsRoute,
     AuthenticatedAdminContentRoute: AuthenticatedAdminContentRoute,
+    AuthenticatedAdminFeedbackRoute: AuthenticatedAdminFeedbackRoute,
     AuthenticatedAdminGenerateRoute: AuthenticatedAdminGenerateRoute,
     AuthenticatedAdminSchoolsRoute: AuthenticatedAdminSchoolsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
@@ -709,11 +809,30 @@ const AuthenticatedTeacherRouteRouteWithChildren =
     AuthenticatedTeacherRouteRouteChildren,
   )
 
+interface AuthenticatedTesterRouteRouteChildren {
+  AuthenticatedTesterNotesRoute: typeof AuthenticatedTesterNotesRoute
+  AuthenticatedTesterQuestionsRoute: typeof AuthenticatedTesterQuestionsRoute
+  AuthenticatedTesterIndexRoute: typeof AuthenticatedTesterIndexRoute
+}
+
+const AuthenticatedTesterRouteRouteChildren: AuthenticatedTesterRouteRouteChildren =
+  {
+    AuthenticatedTesterNotesRoute: AuthenticatedTesterNotesRoute,
+    AuthenticatedTesterQuestionsRoute: AuthenticatedTesterQuestionsRoute,
+    AuthenticatedTesterIndexRoute: AuthenticatedTesterIndexRoute,
+  }
+
+const AuthenticatedTesterRouteRouteWithChildren =
+  AuthenticatedTesterRouteRoute._addFileChildren(
+    AuthenticatedTesterRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedParentRouteRoute: typeof AuthenticatedParentRouteRouteWithChildren
   AuthenticatedStudentRouteRoute: typeof AuthenticatedStudentRouteRouteWithChildren
   AuthenticatedTeacherRouteRoute: typeof AuthenticatedTeacherRouteRouteWithChildren
+  AuthenticatedTesterRouteRoute: typeof AuthenticatedTesterRouteRouteWithChildren
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
 }
 
@@ -722,6 +841,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedParentRouteRoute: AuthenticatedParentRouteRouteWithChildren,
   AuthenticatedStudentRouteRoute: AuthenticatedStudentRouteRouteWithChildren,
   AuthenticatedTeacherRouteRoute: AuthenticatedTeacherRouteRouteWithChildren,
+  AuthenticatedTesterRouteRoute: AuthenticatedTesterRouteRouteWithChildren,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
 }
 

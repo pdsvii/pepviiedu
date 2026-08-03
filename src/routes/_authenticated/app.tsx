@@ -24,6 +24,7 @@ function Dispatcher() {
   if (!data?.role) return <ChooseRole onDone={() => refetch()} />;
 
   if (data.role === "admin") return <Navigate to="/admin" />;
+  if (data.role === "tester") return <Navigate to="/tester" />;
   if (data.role === "student") return <Navigate to="/student" />;
   if (data.role === "parent") return <Navigate to="/parent" />;
   if (data.role === "teacher") return <Navigate to="/teacher" />;
