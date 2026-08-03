@@ -58,28 +58,23 @@ export function AppShell({
   return (
     <div className={variant === "student" ? "student-surface min-h-screen bg-background" : "min-h-screen bg-background"}>
       <header className="sticky top-0 z-10 border-b bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Brand />
-            <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sign out">
-              <LogOut className="mr-1 h-4 w-4" /> Sign out
-            </Button>
-          </div>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+          <Brand />
 
-          <div className="mt-3 hidden flex-wrap items-start gap-x-6 gap-y-2 md:flex">
+          <div className="hidden flex-1 items-center justify-center gap-1 md:flex">
             {nav.map((section, i) =>
               isNavSection(section) ? (
-                <div key={i} className="flex flex-col gap-1">
+                <div key={i} className="relative">
                   <button
                     onClick={() => toggleSection(i)}
-                    className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                    className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted ${openSections.has(i) ? "bg-muted" : ""}`}
                     aria-expanded={openSections.has(i)}
                   >
                     {section.label}
                     <ChevronDown className={`h-3 w-3 transition-transform ${openSections.has(i) ? "rotate-180" : ""}`} />
                   </button>
                   {openSections.has(i) && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="absolute left-0 top-full z-20 mt-1 flex w-max min-w-[12rem] flex-col gap-1 rounded-2xl border bg-background p-2 shadow-lg">
                       {section.items.map((n) => (
                         <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
                           {n.label}
@@ -95,6 +90,10 @@ export function AppShell({
               )
             )}
           </div>
+
+          <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sign out">
+            <LogOut className="mr-1 h-4 w-4" /> Sign out
+          </Button>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-2 pb-2 md:hidden">
           {nav.flatMap((section) => (isNavSection(section) ? section.items : [section])).map((n) => (
