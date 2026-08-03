@@ -488,3 +488,210 @@ export const setAnswerKey = createServerFn({ method: "POST" })
     if (error) throw error;
     return out;
   });
+
+// -------- Concept variations (10 spins on one MOEY item) --------
+const VARIATION_SOURCE = "ai_variation";
+
+type ParentQuestion = {
+  id: string;
+  topic_id: string | null;
+  type: string;
+  stem: string;
+  options: any;
+  answer_key: any;
+  rubric: any;
+  explanation: string | null;
+  difficulty: number | null;
+  topics?: { subject: string; grade: number; component: string; strand: string | null; name: string } | null;
+};
+
+async function aiJson(prompt: string, system: string) {
+  const key = process.env.LOVABLE_API_KEY;
+  if (!key) throw new Error("LOVABLE_API_KEY missing");
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { "content-type": "application/json", "Lovable-API-Key": key },
+    body: JSON.stringify({
+      model: "google/gemini-3.6-flash",
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: "json_object" },
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    if (res.status === 429) throw new Error("AI rate limit reached — wait a moment and run again.");
+    if (res.status === 402) throw new Error("AI credits exhausted — top up credits to keep generating.");
+    throw new Error(`AI error ${res.status}: ${t.slice(0, 200)}`);
+  }
+  const j: any = await res.json();
+  const content = j?.choices?.[0]?.message?.content ?? "{}";
+  try { return JSON.parse(content); } catch { throw new Error("AI returned invalid JSON"); }
+}
+
+function variationRows(parent: ParentQuestion, items: any[], count: number) {
+  const allowed = ["mc","multi","tf","numeric","short_text","pt_scenario","matching","ordering"];
+  return items.slice(0, count).map((it) => ({
+    topic_id: parent.topic_id,
+    passage_id: null,
+    type: allowed.includes(it.type) ? it.type : parent.type,
+    stem: String(it.stem ?? "").slice(0, 4000),
+    options: it.options ?? null,
+    answer_key: it.answer_key ?? null,
+    rubric: it.rubric ?? parent.rubric ?? null,
+    difficulty: Math.max(1, Math.min(5, Number(it.difficulty ?? parent.difficulty ?? 2))),
+    explanation: it.explanation ?? null,
+    source: VARIATION_SOURCE,
+    source_ref: parent.id,
+    needs_review: false,
+  })).filter((r) => r.stem.length > 5);
+}
+
+function variationPrompt(parent: ParentQuestion, count: number) {
+  const t = parent.topics;
+  return `You are creating practice variations of an official Jamaican PEP (Primary Exit Profile) exam item so a student truly masters the concept.
+
+ORIGINAL ITEM
+Grade: ${t?.grade ?? "?"} | Subject: ${t?.subject ?? "?"} | Component: ${t?.component ?? "?"} | Strand: ${t?.strand ?? "general"}
+Type: ${parent.type}
+Stem: ${parent.stem}
+Options: ${JSON.stringify(parent.options ?? null)}
+Answer key: ${JSON.stringify(parent.answer_key ?? null)}
+
+TASK
+Write ${count} DIFFERENT variations that test the exact same underlying concept and skill at the same grade level.
+Rules:
+- Keep the same question type (${parent.type}) unless it is impossible.
+- Change the numbers, names, contexts and wording each time; never repeat the original item verbatim.
+- Use Jamaican contexts (patty shops, Blue Mountain, market vendors, netball, mango, parish names) where natural.
+- Age-appropriate language for a ${t?.grade ?? 6}th-grade Jamaican primary student.
+- Vary difficulty across the set: about 3 easier, 4 same level, 3 harder.
+- Each item MUST have a correct, self-consistent answer key. Do the arithmetic carefully.
+
+Return JSON exactly:
+{"items":[{"type":"${parent.type}","stem":"...","options":["..."],"answer_key":{"value": <0-based index for mc | number for numeric | string for short_text>,"tolerance": <optional number>,"keywords":["..."]},"rubric":{"criteria":["..."],"max":1},"explanation":"short kid-friendly worked explanation","difficulty":1}]}
+Omit "options" for non-choice types. Omit "rubric" unless the type is short_text or pt_scenario.`;
+}
+
+export const generateVariations = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    question_id: z.string().uuid(),
+    count: z.number().int().min(1).max(10).default(10),
+  }).parse(i))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: parent, error } = await context.supabase
+      .from("questions")
+      .select("id, topic_id, type, stem, options, answer_key, rubric, explanation, difficulty, topics(subject, grade, component, strand, name)")
+      .eq("id", data.question_id).single();
+    if (error) throw error;
+    const parsed = await aiJson(
+      variationPrompt(parent as any, data.count),
+      "You are a senior PEP item writer for the Jamaican Ministry of Education. Output only valid JSON.",
+    );
+    const items: any[] = Array.isArray(parsed.items) ? parsed.items : [];
+    const rows = variationRows(parent as any, items, data.count);
+    if (rows.length === 0) throw new Error("AI returned no usable variations");
+    const { data: inserted, error: insErr } = await context.supabase.from("questions").insert(rows).select("id");
+    if (insErr) throw insErr;
+    return { inserted: inserted?.length ?? 0 };
+  });
+
+// Coverage report: how many official/AI parents exist and how many variations each has.
+export const variationCoverage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: rows, error } = await context.supabase
+      .from("questions")
+      .select("id, source, source_ref, topics(grade, subject, component)")
+      .limit(5000);
+    if (error) throw error;
+    const all = rows ?? [];
+    const varCount = new Map<string, number>();
+    for (const r of all as any[]) {
+      if (r.source === VARIATION_SOURCE && r.source_ref) varCount.set(r.source_ref, (varCount.get(r.source_ref) ?? 0) + 1);
+    }
+    const buckets: Record<string, { grade: number; subject: string; component: string; parents: number; variations: number; complete: number }> = {};
+    for (const r of all as any[]) {
+      if (r.source === VARIATION_SOURCE) continue;
+      const t = r.topics ?? {};
+      const key = `${t.grade}|${t.subject}|${t.component}`;
+      const b = buckets[key] ??= { grade: t.grade, subject: t.subject, component: t.component, parents: 0, variations: 0, complete: 0 };
+      const v = varCount.get(r.id) ?? 0;
+      b.parents += 1; b.variations += v; if (v >= 10) b.complete += 1;
+    }
+    return {
+      total: all.length,
+      parents: all.filter((r: any) => r.source !== VARIATION_SOURCE).length,
+      variations: all.filter((r: any) => r.source === VARIATION_SOURCE).length,
+      buckets: Object.values(buckets).sort((a, b) => a.grade - b.grade || String(a.subject).localeCompare(String(b.subject))),
+    };
+  });
+
+// Bulk filler: walks parent items that still need variations and tops them up.
+// The UI calls this repeatedly with a small batch so no single request runs long.
+export const fillContentBank = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    grade: z.number().int().min(4).max(6).optional(),
+    subject: z.enum(["mathematics","language_arts","science","social_studies"]).optional(),
+    component: z.enum(["AT","CBT","PT"]).optional(),
+    per_parent: z.number().int().min(1).max(10).default(10),
+    batch: z.number().int().min(1).max(3).default(2),
+    official_only: z.boolean().default(false),
+  }).parse(i ?? {}))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: rows, error } = await context.supabase
+      .from("questions")
+      .select("id, topic_id, type, stem, options, answer_key, rubric, explanation, difficulty, source, source_ref, topics(subject, grade, component, strand, name)")
+      .limit(5000);
+    if (error) throw error;
+    const all = (rows ?? []) as any[];
+
+    const varCount = new Map<string, number>();
+    for (const r of all) if (r.source === VARIATION_SOURCE && r.source_ref) varCount.set(r.source_ref, (varCount.get(r.source_ref) ?? 0) + 1);
+
+    const candidates = all.filter((r) => {
+      if (r.source === VARIATION_SOURCE) return false;
+      if (data.official_only && r.source !== "moey_official_2018") return false;
+      const t = r.topics ?? {};
+      if (data.grade && t.grade !== data.grade) return false;
+      if (data.subject && t.subject !== data.subject) return false;
+      if (data.component && t.component !== data.component) return false;
+      return (varCount.get(r.id) ?? 0) < data.per_parent;
+    });
+
+    const batch = candidates.slice(0, data.batch);
+    let inserted = 0;
+    const failures: string[] = [];
+    for (const parent of batch) {
+      const need = data.per_parent - (varCount.get(parent.id) ?? 0);
+      try {
+        const parsed = await aiJson(
+          variationPrompt(parent as any, need),
+          "You are a senior PEP item writer for the Jamaican Ministry of Education. Output only valid JSON.",
+        );
+        const items: any[] = Array.isArray(parsed.items) ? parsed.items : [];
+        const newRows = variationRows(parent as any, items, need);
+        if (newRows.length) {
+          const { data: ins, error: insErr } = await context.supabase.from("questions").insert(newRows).select("id");
+          if (insErr) throw insErr;
+          inserted += ins?.length ?? 0;
+        }
+      } catch (e) {
+        failures.push(e instanceof Error ? e.message : "unknown error");
+      }
+    }
+
+    return {
+      processed: batch.length,
+      inserted,
+      remaining: Math.max(0, candidates.length - batch.length),
+      failures,
+    };
+  });
