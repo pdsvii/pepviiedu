@@ -20,6 +20,7 @@ import { Route as AuthenticatedTeacherRouteRouteImport } from './routes/_authent
 import { Route as AuthenticatedStudentRouteRouteImport } from './routes/_authenticated/student/route'
 import { Route as AuthenticatedParentRouteRouteImport } from './routes/_authenticated/parent/route'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedTesterIndexRouteImport } from './routes/_authenticated/tester/index'
 import { Route as AuthenticatedTeacherIndexRouteImport } from './routes/_authenticated/teacher/index'
 import { Route as AuthenticatedStudentIndexRouteImport } from './routes/_authenticated/student/index'
 import { Route as AuthenticatedParentIndexRouteImport } from './routes/_authenticated/parent/index'
@@ -99,6 +100,12 @@ const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTesterIndexRoute =
+  AuthenticatedTesterIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedTesterRouteRoute,
+  } as any)
 const AuthenticatedTeacherIndexRoute =
   AuthenticatedTeacherIndexRouteImport.update({
     id: '/',
@@ -227,7 +234,7 @@ export interface FileRoutesByFullPath {
   '/parent': typeof AuthenticatedParentRouteRouteWithChildren
   '/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
-  '/tester': typeof AuthenticatedTesterRouteRoute
+  '/tester': typeof AuthenticatedTesterRouteRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/parent/': typeof AuthenticatedParentIndexRoute
   '/student/': typeof AuthenticatedStudentIndexRoute
   '/teacher/': typeof AuthenticatedTeacherIndexRoute
+  '/tester/': typeof AuthenticatedTesterIndexRoute
   '/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
   '/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
   '/student/exams/': typeof AuthenticatedStudentExamsIndexRoute
@@ -255,7 +263,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tester': typeof AuthenticatedTesterRouteRoute
   '/app': typeof AuthenticatedAppRoute
   '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/parent': typeof AuthenticatedParentIndexRoute
   '/student': typeof AuthenticatedStudentIndexRoute
   '/teacher': typeof AuthenticatedTeacherIndexRoute
+  '/tester': typeof AuthenticatedTesterIndexRoute
   '/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
   '/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
   '/student/exams': typeof AuthenticatedStudentExamsIndexRoute
@@ -289,7 +297,7 @@ export interface FileRoutesById {
   '/_authenticated/parent': typeof AuthenticatedParentRouteRouteWithChildren
   '/_authenticated/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/_authenticated/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
-  '/_authenticated/tester': typeof AuthenticatedTesterRouteRoute
+  '/_authenticated/tester': typeof AuthenticatedTesterRouteRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/_authenticated/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   '/_authenticated/parent/': typeof AuthenticatedParentIndexRoute
   '/_authenticated/student/': typeof AuthenticatedStudentIndexRoute
   '/_authenticated/teacher/': typeof AuthenticatedTeacherIndexRoute
+  '/_authenticated/tester/': typeof AuthenticatedTesterIndexRoute
   '/_authenticated/parent/child/$childId': typeof AuthenticatedParentChildChildIdRoute
   '/_authenticated/teacher/class/$classId': typeof AuthenticatedTeacherClassClassIdRoute
   '/_authenticated/student/exams/': typeof AuthenticatedStudentExamsIndexRoute
@@ -340,6 +349,7 @@ export interface FileRouteTypes {
     | '/parent/'
     | '/student/'
     | '/teacher/'
+    | '/tester/'
     | '/parent/child/$childId'
     | '/teacher/class/$classId'
     | '/student/exams/'
@@ -351,7 +361,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/tester'
     | '/app'
     | '/admin/answer-keys'
     | '/admin/blueprints'
@@ -368,6 +377,7 @@ export interface FileRouteTypes {
     | '/parent'
     | '/student'
     | '/teacher'
+    | '/tester'
     | '/parent/child/$childId'
     | '/teacher/class/$classId'
     | '/student/exams'
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/_authenticated/parent/'
     | '/_authenticated/student/'
     | '/_authenticated/teacher/'
+    | '/_authenticated/tester/'
     | '/_authenticated/parent/child/$childId'
     | '/_authenticated/teacher/class/$classId'
     | '/_authenticated/student/exams/'
@@ -494,6 +505,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tester/': {
+      id: '/_authenticated/tester/'
+      path: '/'
+      fullPath: '/tester/'
+      preLoaderRoute: typeof AuthenticatedTesterIndexRouteImport
+      parentRoute: typeof AuthenticatedTesterRouteRoute
     }
     '/_authenticated/teacher/': {
       id: '/_authenticated/teacher/'
@@ -729,12 +747,26 @@ const AuthenticatedTeacherRouteRouteWithChildren =
     AuthenticatedTeacherRouteRouteChildren,
   )
 
+interface AuthenticatedTesterRouteRouteChildren {
+  AuthenticatedTesterIndexRoute: typeof AuthenticatedTesterIndexRoute
+}
+
+const AuthenticatedTesterRouteRouteChildren: AuthenticatedTesterRouteRouteChildren =
+  {
+    AuthenticatedTesterIndexRoute: AuthenticatedTesterIndexRoute,
+  }
+
+const AuthenticatedTesterRouteRouteWithChildren =
+  AuthenticatedTesterRouteRoute._addFileChildren(
+    AuthenticatedTesterRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedParentRouteRoute: typeof AuthenticatedParentRouteRouteWithChildren
   AuthenticatedStudentRouteRoute: typeof AuthenticatedStudentRouteRouteWithChildren
   AuthenticatedTeacherRouteRoute: typeof AuthenticatedTeacherRouteRouteWithChildren
-  AuthenticatedTesterRouteRoute: typeof AuthenticatedTesterRouteRoute
+  AuthenticatedTesterRouteRoute: typeof AuthenticatedTesterRouteRouteWithChildren
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
 }
 
@@ -743,7 +775,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedParentRouteRoute: AuthenticatedParentRouteRouteWithChildren,
   AuthenticatedStudentRouteRoute: AuthenticatedStudentRouteRouteWithChildren,
   AuthenticatedTeacherRouteRoute: AuthenticatedTeacherRouteRouteWithChildren,
-  AuthenticatedTesterRouteRoute: AuthenticatedTesterRouteRoute,
+  AuthenticatedTesterRouteRoute: AuthenticatedTesterRouteRouteWithChildren,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
 }
 
