@@ -102,6 +102,13 @@ function TesterQuestions() {
   );
 }
 
+/** Collapsed preview: skip generic instruction lines like "Read the passage…". */
+function previewLine(stem: string) {
+  const lines = String(stem).split("\n").map((l) => l.trim()).filter(Boolean);
+  const meaty = lines.find((l) => l.length > 25 && !/^read the (passage|following)/i.test(l));
+  return meaty ?? lines[0] ?? "";
+}
+
 function QuestionCard({ q }: { q: any }) {
   const [open, setOpen] = useState(false);
   const notesFn = useServerFn(listReviewNotes);
@@ -130,7 +137,7 @@ function QuestionCard({ q }: { q: any }) {
               </span>
             )}
           </div>
-          <div className="mt-2 line-clamp-2 text-sm font-semibold">{String(q.stem).split("\n")[0]}</div>
+          <div className="mt-2 line-clamp-2 text-sm font-semibold">{previewLine(q.stem)}</div>
         </div>
       </button>
 
