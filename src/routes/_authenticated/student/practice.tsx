@@ -152,7 +152,7 @@ function PracticePage() {
             </div>
           )}
 
-          <div className="mb-4 text-lg font-semibold">{questions[idx].stem}</div>
+          <StemText stem={questions[idx].stem} className="mb-4 text-lg font-semibold" />
           <QuestionRenderer q={questions[idx]} value={answer} onChange={setAnswer} disabled={!!feedback} />
 
           {feedback && (
