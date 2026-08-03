@@ -8,16 +8,36 @@ import { Users, BookOpen, School, ClipboardList, ShieldCheck, Settings2 } from "
 export const Route = createFileRoute("/_authenticated/admin/")({ component: AdminHome });
 
 export const ADMIN_NAV = [
-  { to: "/admin", label: "Overview" },
-  { to: "/admin/users", label: "Users" },
-  { to: "/admin/content", label: "Content" },
-  { to: "/admin/answer-keys", label: "Answer Keys" },
-  { to: "/admin/blueprints", label: "Exam Blueprints" },
-  { to: "/admin/generate", label: "Generate Items" },
-  { to: "/admin/variations", label: "Variations" },
-  { to: "/admin/schools", label: "Schools" },
-  { to: "/admin/feedback", label: "Tester feedback" },
-  { to: "/admin/settings", label: "Settings" },
+  {
+    label: "Platform",
+    items: [
+      { to: "/admin", label: "Overview" },
+      { to: "/admin/users", label: "Users" },
+      { to: "/admin/schools", label: "Schools" },
+    ],
+  },
+  {
+    label: "Content",
+    items: [
+      { to: "/admin/content", label: "Content" },
+      { to: "/admin/answer-keys", label: "Answer Keys" },
+    ],
+  },
+  {
+    label: "Exam Engine",
+    items: [
+      { to: "/admin/blueprints", label: "Exam Blueprints" },
+      { to: "/admin/generate", label: "Generate Items" },
+      { to: "/admin/variations", label: "Variations" },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { to: "/admin/feedback", label: "Tester feedback" },
+      { to: "/admin/settings", label: "Settings" },
+    ],
+  },
 ];
 
 function AdminHome() {
