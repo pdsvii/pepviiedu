@@ -1,8 +1,9 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { useState } from "react";
+import { LogOut, ChevronDown } from "lucide-react";
 import { Brand } from "@/components/Brand";
 
 type NavItem = { to: string; label: string };
@@ -25,7 +26,27 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const qc = useQueryClient();
+  const pathname = location.pathname;
+
+  const initiallyOpen = new Set<number>();
+  nav.forEach((section, i) => {
+    if (isNavSection(section) && section.items.some((n) => pathname === n.to || pathname.startsWith(n.to + "/"))) {
+      initiallyOpen.add(i);
+    }
+  });
+
+  const [openSections, setOpenSections] = useState<Set<number>>(initiallyOpen);
+
+  function toggleSection(i: number) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
 
   async function signOut() {
     await qc.cancelQueries();
@@ -45,18 +66,27 @@ export function AppShell({
             </Button>
           </div>
 
-          <div className="mt-3 hidden flex-wrap items-end gap-x-6 gap-y-2 md:flex">
+          <div className="mt-3 hidden flex-wrap items-start gap-x-6 gap-y-2 md:flex">
             {nav.map((section, i) =>
               isNavSection(section) ? (
                 <div key={i} className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{section.label}</span>
-                  <div className="flex flex-wrap gap-1">
-                    {section.items.map((n) => (
-                      <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
-                        {n.label}
-                      </Link>
-                    ))}
-                  </div>
+                  <button
+                    onClick={() => toggleSection(i)}
+                    className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                    aria-expanded={openSections.has(i)}
+                  >
+                    {section.label}
+                    <ChevronDown className={`h-3 w-3 transition-transform ${openSections.has(i) ? "rotate-180" : ""}`} />
+                  </button>
+                  {openSections.has(i) && (
+                    <div className="flex flex-wrap gap-1">
+                      {section.items.map((n) => (
+                        <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
+                          {n.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Link key={section.to} to={section.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
