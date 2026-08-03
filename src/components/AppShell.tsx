@@ -45,16 +45,29 @@ export function AppShell({
             </Button>
           </div>
 
-          <nav className="mt-3 hidden flex-wrap gap-1 md:flex">
-            {nav.map((n) => (
-              <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
-                {n.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="mt-3 hidden flex-wrap items-end gap-x-6 gap-y-2 md:flex">
+            {nav.map((section, i) =>
+              isNavSection(section) ? (
+                <div key={i} className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{section.label}</span>
+                  <div className="flex flex-wrap gap-1">
+                    {section.items.map((n) => (
+                      <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
+                        {n.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Link key={section.to} to={section.to} activeProps={{ className: "bg-secondary" }} className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-muted">
+                  {section.label}
+                </Link>
+              )
+            )}
+          </div>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-2 pb-2 md:hidden">
-          {nav.map((n) => (
+          {nav.flatMap((section) => (isNavSection(section) ? section.items : [section])).map((n) => (
             <Link key={n.to} to={n.to} activeProps={{ className: "bg-secondary" }} className="whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold hover:bg-muted">
               {n.label}
             </Link>
