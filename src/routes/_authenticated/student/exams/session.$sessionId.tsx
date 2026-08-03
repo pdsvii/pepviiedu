@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getExamSession, saveExamAnswer, submitExamSession } from "@/lib/exam.functions";
 import { QuestionRenderer } from "@/components/QuestionRenderer";
+import { StemText } from "@/components/StemText";
 import { Button } from "@/components/ui/button";
 import { Flag, ChevronLeft, ChevronRight, Timer } from "lucide-react";
 import { toast } from "sonner";
