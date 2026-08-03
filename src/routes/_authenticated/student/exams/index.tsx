@@ -74,7 +74,7 @@ function ExamsHome() {
 
       <section className="mt-6 rounded-3xl bg-secondary p-6">
         <h2 className="display text-lg font-bold">Start a new mock exam</h2>
-        <p className="text-xs text-muted-foreground">Grade {grade} · defaults from your admin (pending official MoE spec)</p>
+        <p className="text-xs text-muted-foreground">Grade {grade} · structured to MOEY PEP examination standards</p>
 
         <div className="mt-4">
           <div className="text-sm font-semibold">Component</div>
