@@ -215,8 +215,8 @@ export const setReviewNoteStatus = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { isAdmin } = await assertReviewer(context.supabase, context.userId);
     if (!isAdmin) throw new Error("Only admins can triage review notes");
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.admin_response !== undefined) patch['admin_response'] = data.admin_response || null;
+    const patch: { status: string; admin_response?: string | null } = { status: data.status };
+    if (data.admin_response !== undefined) patch.admin_response = data.admin_response || null;
     const { error } = await context.supabase.from("review_notes").update(patch).eq("id", data.id);
     if (error) throw error;
     return { ok: true };
