@@ -10,9 +10,9 @@ export const getMyRole = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     if (error) throw error;
     const roles = (rows ?? []).map((r: any) => r.role as string);
-    // Precedence: admin > teacher > parent > student
-    const order = ["admin", "teacher", "parent", "student"] as const;
-    const role = (order.find((r) => roles.includes(r)) ?? null) as "student" | "parent" | "teacher" | "admin" | null;
+    // Precedence: admin > tester > teacher > parent > student
+    const order = ["admin", "tester", "teacher", "parent", "student"] as const;
+    const role = (order.find((r) => roles.includes(r)) ?? null) as "student" | "parent" | "teacher" | "tester" | "admin" | null;
     const { data: profile } = await supabase.from("profiles").select("id, full_name, avatar, grade").eq("id", userId).maybeSingle();
     return { role, profile };
   });

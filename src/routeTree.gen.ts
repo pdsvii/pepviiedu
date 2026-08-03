@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedTesterRouteRouteImport } from './routes/_authenticated/tester/route'
 import { Route as AuthenticatedTeacherRouteRouteImport } from './routes/_authenticated/teacher/route'
 import { Route as AuthenticatedStudentRouteRouteImport } from './routes/_authenticated/student/route'
 import { Route as AuthenticatedParentRouteRouteImport } from './routes/_authenticated/parent/route'
@@ -69,6 +70,12 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTesterRouteRoute =
+  AuthenticatedTesterRouteRouteImport.update({
+    id: '/tester',
+    path: '/tester',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTeacherRouteRoute =
   AuthenticatedTeacherRouteRouteImport.update({
     id: '/teacher',
@@ -220,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/parent': typeof AuthenticatedParentRouteRouteWithChildren
   '/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
+  '/tester': typeof AuthenticatedTesterRouteRoute
   '/app': typeof AuthenticatedAppRoute
   '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
@@ -247,6 +255,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tester': typeof AuthenticatedTesterRouteRoute
   '/app': typeof AuthenticatedAppRoute
   '/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
@@ -280,6 +289,7 @@ export interface FileRoutesById {
   '/_authenticated/parent': typeof AuthenticatedParentRouteRouteWithChildren
   '/_authenticated/student': typeof AuthenticatedStudentRouteRouteWithChildren
   '/_authenticated/teacher': typeof AuthenticatedTeacherRouteRouteWithChildren
+  '/_authenticated/tester': typeof AuthenticatedTesterRouteRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/admin/answer-keys': typeof AuthenticatedAdminAnswerKeysRoute
   '/_authenticated/admin/blueprints': typeof AuthenticatedAdminBlueprintsRoute
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/parent'
     | '/student'
     | '/teacher'
+    | '/tester'
     | '/app'
     | '/admin/answer-keys'
     | '/admin/blueprints'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/tester'
     | '/app'
     | '/admin/answer-keys'
     | '/admin/blueprints'
@@ -372,6 +384,7 @@ export interface FileRouteTypes {
     | '/_authenticated/parent'
     | '/_authenticated/student'
     | '/_authenticated/teacher'
+    | '/_authenticated/tester'
     | '/_authenticated/app'
     | '/_authenticated/admin/answer-keys'
     | '/_authenticated/admin/blueprints'
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tester': {
+      id: '/_authenticated/tester'
+      path: '/tester'
+      fullPath: '/tester'
+      preLoaderRoute: typeof AuthenticatedTesterRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/teacher': {
@@ -714,6 +734,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedParentRouteRoute: typeof AuthenticatedParentRouteRouteWithChildren
   AuthenticatedStudentRouteRoute: typeof AuthenticatedStudentRouteRouteWithChildren
   AuthenticatedTeacherRouteRoute: typeof AuthenticatedTeacherRouteRouteWithChildren
+  AuthenticatedTesterRouteRoute: typeof AuthenticatedTesterRouteRoute
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
 }
 
@@ -722,6 +743,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedParentRouteRoute: AuthenticatedParentRouteRouteWithChildren,
   AuthenticatedStudentRouteRoute: AuthenticatedStudentRouteRouteWithChildren,
   AuthenticatedTeacherRouteRoute: AuthenticatedTeacherRouteRouteWithChildren,
+  AuthenticatedTesterRouteRoute: AuthenticatedTesterRouteRoute,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
 }
 
