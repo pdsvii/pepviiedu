@@ -10,6 +10,7 @@ import {
 } from "@/lib/admin.functions";
 import { QuestionRenderer, type Question } from "@/components/QuestionRenderer";
 import { StemText } from "@/components/StemText";
+import { gradeAnswer, keyIsUsable, normalizeAnswerKey } from "@/lib/grading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
