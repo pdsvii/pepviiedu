@@ -59,11 +59,12 @@ export const startExamSession = createServerFn({ method: "POST" })
     const topicMap = new Map(topics.map((t: any) => [t.id, t]));
     const topicIds = topics.map((t: any) => t.id);
     const { data: qs, error: qErr } = await supabase.from("questions")
-      .select("id, topic_id, type").in("topic_id", topicIds);
+      .select("id, topic_id, type, difficulty, source, source_ref").in("topic_id", topicIds);
     if (qErr) throw qErr;
     if (!qs || qs.length === 0) throw new Error("No questions available yet. Ask an admin to generate items.");
 
-    const picked = shuffle(qs).slice(0, bp.item_count);
+    const picked = buildPaper(qs as any[], topicMap, bp);
+    if (picked.length === 0) throw new Error("Not enough questions to assemble this paper yet.");
 
     // Create session
     const timeLimit = bp.duration_minutes * 60;
@@ -92,7 +93,7 @@ export const startExamSession = createServerFn({ method: "POST" })
     const { error: iErr } = await supabase.from("exam_session_items").insert(rows);
     if (iErr) throw iErr;
 
-    return { session_id: session.id };
+    return { session_id: session.id, item_count: rows.length, time_limit_seconds: timeLimit };
   });
 
 // -------- Fetch session (no answer keys) --------
