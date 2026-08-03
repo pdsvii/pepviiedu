@@ -29,10 +29,14 @@ function buildTable(lines: string[]): Block {
     if (groups.length === 0) {
       groups.push([line]);
     } else if (startsRow(line)) {
-      // a fraction numerator often sits on the line ABOVE its row number
+      // A fraction's numerator often sits on the line ABOVE its row number, so an
+      // odd count of bare-number lines means the last one belongs to the next row.
       const prev = groups[groups.length - 1];
+      const bare = (l: string) => /^\s*\d+\s*$/.test(l);
       const pulled: string[] = [];
-      while (prev.length > 1 && /^\s*\d+\s*$/.test(prev[prev.length - 1])) pulled.unshift(prev.pop()!);
+      if (prev.length > 1 && prev.filter(bare).length % 2 === 1 && bare(prev[prev.length - 1])) {
+        pulled.push(prev.pop()!);
+      }
       groups.push([...pulled, line]);
     } else {
       groups[groups.length - 1].push(line);
