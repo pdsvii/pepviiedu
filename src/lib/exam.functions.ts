@@ -20,6 +20,83 @@ function pctToBand(pct: number, cuts: BandCuts): Band {
 
 function shuffle<T>(arr: T[]): T[] { return [...arr].sort(() => Math.random() - 0.5); }
 
+// MOEY-style paper assembly:
+//  * strands are sampled round-robin so every strand in the blueprint's grade/subject appears
+//  * only one item per concept family (a MOEY parent item and its variations count as one)
+//  * item_mix (type -> share) is honoured when the blueprint defines one
+//  * items are ordered easiest -> hardest, the way official PEP papers ramp up
+function buildPaper(
+  qs: any[],
+  topicMap: Map<string, any>,
+  bp: { item_count: number; item_mix?: Record<string, number> | null; component: string },
+): any[] {
+  const target = bp.item_count;
+  const mix = bp.item_mix && Object.keys(bp.item_mix).length ? bp.item_mix : null;
+
+  // One representative per concept family, preferring official MOEY wording.
+  const families = new Map<string, any[]>();
+  for (const q of qs) {
+    const fam = q.source_ref ?? q.id;
+    (families.get(fam) ?? families.set(fam, []).get(fam)!).push(q);
+  }
+  const pool: any[] = [];
+  for (const members of families.values()) {
+    const official = members.find((m) => m.source === "moey_official_2018");
+    pool.push(official ?? shuffle(members)[0]);
+  }
+
+  // Type quotas from item_mix (shares or counts both work).
+  const quotas = new Map<string, number>();
+  if (mix) {
+    const totalWeight = Object.values(mix).reduce((a, b) => a + Number(b || 0), 0) || 1;
+    for (const [type, w] of Object.entries(mix)) {
+      quotas.set(type, Math.round((Number(w) / totalWeight) * target));
+    }
+  }
+  const typeUsed = new Map<string, number>();
+  const fitsMix = (type: string) => {
+    if (!mix) return true;
+    const cap = quotas.get(type);
+    if (cap === undefined) return false;
+    return (typeUsed.get(type) ?? 0) < cap;
+  };
+
+  // Group by strand for round-robin sampling.
+  const byStrand = new Map<string, any[]>();
+  for (const q of pool) {
+    const t = topicMap.get(q.topic_id);
+    const key = `${t?.subject ?? "general"}::${t?.strand ?? "general"}`;
+    (byStrand.get(key) ?? byStrand.set(key, []).get(key)!).push(q);
+  }
+  const groups = shuffle([...byStrand.values()]).map((g) => shuffle(g));
+
+  const chosen: any[] = [];
+  const leftovers: any[] = [];
+  let progress = true;
+  while (chosen.length < target && progress) {
+    progress = false;
+    for (const g of groups) {
+      if (chosen.length >= target) break;
+      const next = g.shift();
+      if (!next) continue;
+      progress = true;
+      if (fitsMix(next.type)) {
+        chosen.push(next);
+        typeUsed.set(next.type, (typeUsed.get(next.type) ?? 0) + 1);
+      } else {
+        leftovers.push(next);
+      }
+    }
+  }
+  // Top up with anything left so a paper is never short when content exists.
+  for (const q of leftovers) {
+    if (chosen.length >= target) break;
+    chosen.push(q);
+  }
+
+  return chosen.sort((a, b) => Number(a.difficulty ?? 2) - Number(b.difficulty ?? 2));
+}
+
 // -------- Blueprints (readable to authenticated) --------
 export const listExamBlueprints = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
