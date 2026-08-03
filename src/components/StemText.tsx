@@ -156,8 +156,10 @@ function parseBlocks(stem: string): Block[] {
     buffer.push(line);
   }
   flush();
-  return foldDiagram(blocks).filter(
-    (b) => b.kind === "prose" || b.rows.length > 0,
+  return foldDiagram(blocks).map<Block>((b) =>
+    b.kind === "table" && b.rows.length === 0
+      ? { kind: "prose", lines: [b.header.filter(Boolean).join("   ")] }
+      : b,
   );
 }
 
