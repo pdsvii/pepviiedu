@@ -3,8 +3,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 async function assertTeacher(supabase: any, userId: string) {
-  const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "teacher" });
-  if (!data) throw new Error("Only teachers can do that");
+  const [{ data: isTeacher }, { data: isAdmin }] = await Promise.all([
+    supabase.rpc("has_role", { _user_id: userId, _role: "teacher" }),
+    supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+  ]);
+  if (!isTeacher && !isAdmin) throw new Error("Only teachers can do that");
 }
 
 export const listMyClasses = createServerFn({ method: "GET" })

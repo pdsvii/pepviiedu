@@ -3,8 +3,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 async function assertParent(supabase: any, userId: string) {
-  const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "parent" });
-  if (!data) throw new Error("Only parents can do that");
+  const [{ data: isParent }, { data: isAdmin }] = await Promise.all([
+    supabase.rpc("has_role", { _user_id: userId, _role: "parent" }),
+    supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+  ]);
+  if (!isParent && !isAdmin) throw new Error("Only parents can do that");
 }
 
 export const listMyChildren = createServerFn({ method: "GET" })
