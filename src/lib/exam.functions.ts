@@ -140,7 +140,7 @@ export const startExamSession = createServerFn({ method: "POST" })
     if (qErr) throw qErr;
     if (!qs || qs.length === 0) throw new Error("No questions available yet. Ask an admin to generate items.");
 
-    const picked = buildPaper(qs as any[], topicMap, bp);
+    const picked = buildPaper(qs as any[], topicMap, bp as any);
     if (picked.length === 0) throw new Error("Not enough questions to assemble this paper yet.");
 
     // Create session
