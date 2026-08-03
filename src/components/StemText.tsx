@@ -7,7 +7,7 @@
 
 type Block =
   | { kind: "prose"; lines: string[] }
-  | { kind: "table"; header: string[]; rows: string[][] };
+  | { kind: "table"; header: string[]; rows: string[][]; offsets?: number[] };
 
 const isTableLine = (line: string) => /\t/.test(line) || /\S\s{2,}\S/.test(line);
 /** short leftovers like "5", "8", ".075", "4. 0.6%" belong to the table above */
@@ -78,7 +78,51 @@ function buildTable(lines: string[]): Block {
     return [label, ...cells];
   });
 
-  return { kind: "table", header: ["", ...header], rows };
+  const offsets = header.map((h) => lines[0].indexOf(h));
+  return { kind: "table", header: ["", ...header], rows, offsets };
+}
+
+/** A header-only "table" is really a two-column diagram whose column text sits on
+ *  the following lines; assign those lines to the nearest column by indentation. */
+function foldDiagram(blocks: Block[]): Block[] {
+  const out: Block[] = [];
+  for (const b of blocks) {
+    const prev = out[out.length - 1];
+    if (
+      b.kind === "prose" &&
+      prev &&
+      prev.kind === "table" &&
+      prev.rows.length === 0 &&
+      prev.offsets &&
+      prev.offsets.length > 1
+    ) {
+      const offsets = prev.offsets;
+      const cells = offsets.map(() => [] as string[]);
+      const trailing: string[] = [];
+      for (const line of b.lines) {
+        const text = line.trim();
+        if (text === "") continue;
+        const indent = line.length - line.trimStart().length;
+        // the closing instruction/question stays as prose under the diagram
+        if (/[?:]$/.test(text) || trailing.length > 0) {
+          trailing.push(text);
+          continue;
+        }
+        let nearest = 0;
+        offsets.forEach((o, i) => {
+          if (Math.abs(indent - o) < Math.abs(indent - offsets[nearest])) nearest = i;
+        });
+        cells[nearest].push(text);
+      }
+      if (cells.some((c) => c.length > 0)) {
+        prev.rows = [["", ...cells.map((c) => c.join(" "))]];
+        if (trailing.length) out.push({ kind: "prose", lines: trailing });
+        continue;
+      }
+    }
+    out.push(b);
+  }
+  return out;
 }
 
 /** Blank ruled answer lines from the PDFs ("_____" / "-----") are dropped: the app
@@ -112,7 +156,11 @@ function parseBlocks(stem: string): Block[] {
     buffer.push(line);
   }
   flush();
-  return blocks;
+  return foldDiagram(blocks).map<Block>((b) =>
+    b.kind === "table" && b.rows.length === 0
+      ? { kind: "prose", lines: [b.header.filter(Boolean).join("   ")] }
+      : b,
+  );
 }
 
 export function StemText({ stem, className = "" }: { stem: string; className?: string }) {
@@ -141,7 +189,7 @@ export function StemText({ stem, className = "" }: { stem: string; className?: s
                 {b.rows.map((row, r) => (
                   <tr key={r} className="border-t">
                     {row.map((cell, c) => (
-                      <td key={c} className={`px-3 py-2 align-middle ${c ? "border-l" : "font-semibold text-muted-foreground"}`}>
+                      <td key={c} className={`px-3 py-2 align-top ${c ? "border-l" : "font-semibold text-muted-foreground"}`}>
                         {cell}
                       </td>
                     ))}
