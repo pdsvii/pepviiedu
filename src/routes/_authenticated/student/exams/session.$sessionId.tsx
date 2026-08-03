@@ -129,7 +129,7 @@ function ExamSession() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">{current.subject ?? "—"} · {current.strand ?? "general"}</div>
-                  <p className="mt-2 display text-lg font-bold">{current.question?.stem}</p>
+                  <StemText stem={current.question?.stem ?? ""} className="mt-2 display text-lg font-bold" />
                 </div>
                 {!readOnly && (
                   <Button variant={flags[current.id] ? "default" : "outline"} size="sm" onClick={toggleFlag} className="rounded-full" aria-pressed={flags[current.id] ?? false}>
