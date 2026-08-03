@@ -26,6 +26,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTeacherAssignmentsRouteImport } from './routes/_authenticated/teacher/assignments'
 import { Route as AuthenticatedStudentRewardsRouteImport } from './routes/_authenticated/student/rewards'
 import { Route as AuthenticatedStudentPracticeRouteImport } from './routes/_authenticated/student/practice'
+import { Route as AuthenticatedAdminVariationsRouteImport } from './routes/_authenticated/admin/variations'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminSchoolsRouteImport } from './routes/_authenticated/admin/schools'
@@ -132,6 +133,12 @@ const AuthenticatedStudentPracticeRoute =
     path: '/practice',
     getParentRoute: () => AuthenticatedStudentRouteRoute,
   } as any)
+const AuthenticatedAdminVariationsRoute =
+  AuthenticatedAdminVariationsRouteImport.update({
+    id: '/variations',
+    path: '/variations',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -221,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/variations': typeof AuthenticatedAdminVariationsRoute
   '/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
@@ -247,6 +255,7 @@ export interface FileRoutesByTo {
   '/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/variations': typeof AuthenticatedAdminVariationsRoute
   '/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
@@ -279,6 +288,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/schools': typeof AuthenticatedAdminSchoolsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/admin/variations': typeof AuthenticatedAdminVariationsRoute
   '/_authenticated/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/_authenticated/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/_authenticated/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/admin/schools'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/variations'
     | '/student/practice'
     | '/student/rewards'
     | '/teacher/assignments'
@@ -337,6 +348,7 @@ export interface FileRouteTypes {
     | '/admin/schools'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/variations'
     | '/student/practice'
     | '/student/rewards'
     | '/teacher/assignments'
@@ -368,6 +380,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/schools'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
+    | '/_authenticated/admin/variations'
     | '/_authenticated/student/practice'
     | '/_authenticated/student/rewards'
     | '/_authenticated/teacher/assignments'
@@ -511,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentPracticeRouteImport
       parentRoute: typeof AuthenticatedStudentRouteRoute
     }
+    '/_authenticated/admin/variations': {
+      id: '/_authenticated/admin/variations'
+      path: '/variations'
+      fullPath: '/admin/variations'
+      preLoaderRoute: typeof AuthenticatedAdminVariationsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/users'
@@ -606,6 +626,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminSchoolsRoute: typeof AuthenticatedAdminSchoolsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminVariationsRoute: typeof AuthenticatedAdminVariationsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -618,6 +639,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminSchoolsRoute: AuthenticatedAdminSchoolsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+    AuthenticatedAdminVariationsRoute: AuthenticatedAdminVariationsRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   }
 
