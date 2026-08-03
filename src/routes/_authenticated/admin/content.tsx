@@ -101,7 +101,7 @@ function InteractiveQuestion({ q }: { q: any }) {
 
   return (
     <div className="student-surface grid gap-4 rounded-3xl border bg-card p-4 shadow-sm md:p-5">
-      <p className="whitespace-pre-wrap text-base font-semibold leading-relaxed md:text-lg">{q.stem}</p>
+      <StemText stem={q.stem} className="text-base font-semibold md:text-lg" />
       <QuestionRenderer q={rq} value={value} onChange={(v) => { setValue(v); setChecked(false); }} disabled={checked && result === true} />
       {answerable && (
         <div className="flex flex-wrap items-center gap-2">
