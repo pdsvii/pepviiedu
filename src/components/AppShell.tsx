@@ -39,6 +39,14 @@ export function AppShell({
     });
   }
 
+  function closeSection(i: number) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      next.delete(i);
+      return next;
+    });
+  }
+
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
