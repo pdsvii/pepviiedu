@@ -137,7 +137,7 @@ function QuestionCard({ q }: { q: any }) {
       {open && (
         <div className="border-t bg-muted/20 p-4">
           <div className="rounded-2xl bg-card p-4 text-sm shadow-sm">
-            <StemText text={q.stem} />
+            <StemText stem={q.stem} />
             {options.length > 0 && (
               <div className="mt-3 grid gap-2">
                 {options.map((opt, i) => {

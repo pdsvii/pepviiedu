@@ -25,6 +25,7 @@ import { Route as AuthenticatedTeacherIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedStudentIndexRouteImport } from './routes/_authenticated/student/index'
 import { Route as AuthenticatedParentIndexRouteImport } from './routes/_authenticated/parent/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedTesterQuestionsRouteImport } from './routes/_authenticated/tester/questions'
 import { Route as AuthenticatedTeacherAssignmentsRouteImport } from './routes/_authenticated/teacher/assignments'
 import { Route as AuthenticatedStudentRewardsRouteImport } from './routes/_authenticated/student/rewards'
 import { Route as AuthenticatedStudentPracticeRouteImport } from './routes/_authenticated/student/practice'
@@ -129,6 +130,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedTesterQuestionsRoute =
+  AuthenticatedTesterQuestionsRouteImport.update({
+    id: '/questions',
+    path: '/questions',
+    getParentRoute: () => AuthenticatedTesterRouteRoute,
+  } as any)
 const AuthenticatedTeacherAssignmentsRoute =
   AuthenticatedTeacherAssignmentsRouteImport.update({
     id: '/assignments',
@@ -247,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/tester/questions': typeof AuthenticatedTesterQuestionsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/parent/': typeof AuthenticatedParentIndexRoute
   '/student/': typeof AuthenticatedStudentIndexRoute
@@ -275,6 +283,7 @@ export interface FileRoutesByTo {
   '/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/tester/questions': typeof AuthenticatedTesterQuestionsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/parent': typeof AuthenticatedParentIndexRoute
   '/student': typeof AuthenticatedStudentIndexRoute
@@ -310,6 +319,7 @@ export interface FileRoutesById {
   '/_authenticated/student/practice': typeof AuthenticatedStudentPracticeRoute
   '/_authenticated/student/rewards': typeof AuthenticatedStudentRewardsRoute
   '/_authenticated/teacher/assignments': typeof AuthenticatedTeacherAssignmentsRoute
+  '/_authenticated/tester/questions': typeof AuthenticatedTesterQuestionsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/parent/': typeof AuthenticatedParentIndexRoute
   '/_authenticated/student/': typeof AuthenticatedStudentIndexRoute
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/student/practice'
     | '/student/rewards'
     | '/teacher/assignments'
+    | '/tester/questions'
     | '/admin/'
     | '/parent/'
     | '/student/'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/student/practice'
     | '/student/rewards'
     | '/teacher/assignments'
+    | '/tester/questions'
     | '/admin'
     | '/parent'
     | '/student'
@@ -407,6 +419,7 @@ export interface FileRouteTypes {
     | '/_authenticated/student/practice'
     | '/_authenticated/student/rewards'
     | '/_authenticated/teacher/assignments'
+    | '/_authenticated/tester/questions'
     | '/_authenticated/admin/'
     | '/_authenticated/parent/'
     | '/_authenticated/student/'
@@ -540,6 +553,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/tester/questions': {
+      id: '/_authenticated/tester/questions'
+      path: '/questions'
+      fullPath: '/tester/questions'
+      preLoaderRoute: typeof AuthenticatedTesterQuestionsRouteImport
+      parentRoute: typeof AuthenticatedTesterRouteRoute
     }
     '/_authenticated/teacher/assignments': {
       id: '/_authenticated/teacher/assignments'
@@ -748,11 +768,13 @@ const AuthenticatedTeacherRouteRouteWithChildren =
   )
 
 interface AuthenticatedTesterRouteRouteChildren {
+  AuthenticatedTesterQuestionsRoute: typeof AuthenticatedTesterQuestionsRoute
   AuthenticatedTesterIndexRoute: typeof AuthenticatedTesterIndexRoute
 }
 
 const AuthenticatedTesterRouteRouteChildren: AuthenticatedTesterRouteRouteChildren =
   {
+    AuthenticatedTesterQuestionsRoute: AuthenticatedTesterQuestionsRoute,
     AuthenticatedTesterIndexRoute: AuthenticatedTesterIndexRoute,
   }
 
