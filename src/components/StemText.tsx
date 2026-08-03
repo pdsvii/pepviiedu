@@ -156,7 +156,9 @@ function parseBlocks(stem: string): Block[] {
     buffer.push(line);
   }
   flush();
-  return blocks;
+  return foldDiagram(blocks).filter(
+    (b) => b.kind === "prose" || b.rows.length > 0,
+  );
 }
 
 export function StemText({ stem, className = "" }: { stem: string; className?: string }) {
