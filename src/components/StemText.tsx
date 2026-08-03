@@ -189,7 +189,7 @@ export function StemText({ stem, className = "" }: { stem: string; className?: s
                 {b.rows.map((row, r) => (
                   <tr key={r} className="border-t">
                     {row.map((cell, c) => (
-                      <td key={c} className={`px-3 py-2 align-middle ${c ? "border-l" : "font-semibold text-muted-foreground"}`}>
+                      <td key={c} className={`px-3 py-2 align-top ${c ? "border-l" : "font-semibold text-muted-foreground"}`}>
                         {cell}
                       </td>
                     ))}
