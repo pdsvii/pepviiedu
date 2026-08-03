@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { TESTER_NAV } from "./route";
 import { StemText } from "@/components/StemText";
+import { correctIndexes, normalizeAnswerKey } from "@/lib/grading";
 import { ReviewNoteDialog } from "@/components/ReviewNoteDialog";
 import { listReviewQuestions, listReviewNotes } from "@/lib/tester.functions";
 import { severityClass, statusClass, statusLabel, categoryLabel } from "@/lib/review-areas";
@@ -120,6 +121,8 @@ function QuestionCard({ q }: { q: any }) {
   const t = q.topics;
   const options: string[] = Array.isArray(q.options) ? q.options : [];
   const key = q.answer_key;
+  const normKey = normalizeAnswerKey(q.type, key, options.map(String));
+  const correctIdx = correctIndexes(normKey);
 
   return (
     <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
@@ -148,8 +151,7 @@ function QuestionCard({ q }: { q: any }) {
             {options.length > 0 && (
               <div className="mt-3 grid gap-2">
                 {options.map((opt, i) => {
-                  const correct =
-                    key === i || key?.index === i || (Array.isArray(key?.indices) && key.indices.includes(i));
+                  const correct = correctIdx.includes(i);
                   return (
                     <div key={i} className={`rounded-xl border-2 px-3 py-2 ${correct ? "border-primary bg-secondary" : "border-transparent bg-muted"}`}>
                       <span className="mr-2 font-bold">{String.fromCharCode(65 + i)}.</span>{opt}
