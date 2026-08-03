@@ -81,8 +81,12 @@ function buildTable(lines: string[]): Block {
   return { kind: "table", header: ["", ...header], rows };
 }
 
+/** Blank ruled answer lines from the PDFs ("_____" / "-----") are dropped: the app
+ *  supplies a real input box under the question instead. */
+const isAnswerRule = (line: string) => /^[\s._\-–—]{6,}$/.test(line);
+
 function parseBlocks(stem: string): Block[] {
-  const lines = stem.replace(/\r/g, "").split("\n");
+  const lines = stem.replace(/\r/g, "").split("\n").filter((l) => !isAnswerRule(l));
   const blocks: Block[] = [];
   let buffer: string[] = [];
   let mode: "prose" | "table" | null = null;
