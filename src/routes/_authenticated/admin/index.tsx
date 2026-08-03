@@ -14,6 +14,7 @@ export const ADMIN_NAV = [
   { to: "/admin/answer-keys", label: "Answer Keys" },
   { to: "/admin/blueprints", label: "Exam Blueprints" },
   { to: "/admin/generate", label: "Generate Items" },
+  { to: "/admin/variations", label: "Variations" },
   { to: "/admin/schools", label: "Schools" },
   { to: "/admin/settings", label: "Settings" },
 ];
