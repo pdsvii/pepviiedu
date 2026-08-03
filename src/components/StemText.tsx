@@ -86,7 +86,8 @@ function parseBlocks(stem: string): Block[] {
       buffer.push("");
       continue;
     }
-    const continuesTable = mode === "table" && (isTableLine(line) || isFragment(line) || startsRow(line));
+    const continuesTable: boolean =
+      mode === "table" && (isTableLine(line) || isFragment(line) || startsRow(line));
     const next: "prose" | "table" = continuesTable ? "table" : isTableLine(line) ? "table" : "prose";
     if (mode !== null && next !== mode) flush();
     mode = next;
