@@ -11,6 +11,47 @@ export type Question = {
   passage_id?: string | null;
 };
 
+/**
+ * Many official items ask two things in one question ("A. … B. …").
+ * Detect those part labels so each part gets its own answer box.
+ */
+function findParts(stem: string): string[] {
+  const found: string[] = [];
+  for (const raw of String(stem ?? "").split("\n")) {
+    const m = raw.match(/^\s*\(?([A-Ha-h])[.)]\s+\S/);
+    if (m) {
+      const label = m[1].toUpperCase();
+      if (!found.includes(label)) found.push(label);
+    }
+  }
+  // Only treat as multi-part when labels run in order from A.
+  const expected = found.map((_, i) => String.fromCharCode(65 + i));
+  return found.length > 1 && found.every((l, i) => l === expected[i]) ? found : [];
+}
+
+function parseParts(value: unknown, parts: string[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  const text = typeof value === "string" ? value : "";
+  const re = new RegExp(`(?:^|\\n)\\s*([${parts.join("")}])\\)\\s?`, "g");
+  const hits = [...text.matchAll(re)];
+  if (hits.length === 0) {
+    if (text.trim()) out[parts[0]] = text;
+    return out;
+  }
+  hits.forEach((h, i) => {
+    const start = h.index! + h[0].length;
+    const end = i + 1 < hits.length ? hits[i + 1].index! : text.length;
+    out[h[1]] = text.slice(start, end).trim();
+  });
+  return out;
+}
+
+function serializeParts(parts: string[], values: Record<string, string>): string {
+  const filled = parts.filter((p) => (values[p] ?? "").trim() !== "");
+  if (filled.length === 0) return "";
+  return parts.map((p) => `${p}) ${(values[p] ?? "").trim()}`).join("\n");
+}
+
 export function QuestionRenderer({
   q,
   value,
