@@ -26,18 +26,9 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const qc = useQueryClient();
-  const pathname = location.pathname;
 
-  const initiallyOpen = new Set<number>();
-  nav.forEach((section, i) => {
-    if (isNavSection(section) && section.items.some((n) => pathname === n.to || pathname.startsWith(n.to + "/"))) {
-      initiallyOpen.add(i);
-    }
-  });
-
-  const [openSections, setOpenSections] = useState<Set<number>>(initiallyOpen);
+  const [openSections, setOpenSections] = useState<Set<number>>(new Set());
 
   function toggleSection(i: number) {
     setOpenSections((prev) => {
