@@ -74,7 +74,7 @@ function ExamsHome() {
 
       <section className="mt-6 rounded-3xl bg-secondary p-6">
         <h2 className="display text-lg font-bold">Start a new mock exam</h2>
-        <p className="text-xs text-muted-foreground">Grade {grade} · defaults from your admin (pending official MoE spec)</p>
+        <p className="text-xs text-muted-foreground">Grade {grade} · structured to MOEY PEP examination standards</p>
 
         <div className="mt-4">
           <div className="text-sm font-semibold">Component</div>
@@ -104,10 +104,29 @@ function ExamsHome() {
           </div>
         )}
 
-        <div className="mt-5 flex items-center justify-between rounded-2xl bg-card/70 p-4">
+        {bp && (
+          <div className="mt-5 rounded-2xl bg-card/70 p-4">
+            <div className="text-sm font-semibold">Paper structure (MOEY standard)</div>
+            <div className="mt-2 grid gap-2 text-xs sm:grid-cols-3">
+              <div className="rounded-xl bg-secondary/60 p-3"><b>{bp.item_count}</b> questions</div>
+              <div className="rounded-xl bg-secondary/60 p-3"><b>{bp.duration_minutes}</b> minutes, timed</div>
+              <div className="rounded-xl bg-secondary/60 p-3">
+                {Object.entries((bp.item_mix ?? {}) as Record<string, number>).map(([t, w]) => `${t.replace("_", " ")} ${Math.round(Number(w) * 100)}%`).join(" · ") || "Mixed item types"}
+              </div>
+            </div>
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+              <li>Questions are balanced across every strand for your grade and ramp up from easier to harder.</li>
+              <li>The countdown keeps running — the paper submits itself when time is up.</li>
+              <li>Bands: Beginning · Developing ({bp.band_cuts?.developing ?? 50}%) · Proficient ({bp.band_cuts?.proficient ?? 70}%) · Highly Proficient ({bp.band_cuts?.highly_proficient ?? 85}%).</li>
+              <li>You can flag questions and come back to them before you submit.</li>
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-4 flex items-center justify-between rounded-2xl bg-card/70 p-4">
           <div className="text-sm">
             {bp
-              ? <>This paper: <b>{bp.item_count}</b> questions · <b>{bp.duration_minutes}</b> minutes</>
+              ? <>Ready when you are — <b>{bp.item_count}</b> questions in <b>{bp.duration_minutes}</b> minutes.</>
               : <span className="text-muted-foreground">No blueprint configured for this option.</span>}
           </div>
           <Button onClick={start} disabled={!bp || busy} size="lg" className="rounded-full">
